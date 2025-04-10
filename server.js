@@ -2,7 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
@@ -22,7 +22,7 @@ app.get("/oauth2callback", async (req, res) => {
   }
 
   // Asegúrate de que la URI de redirección sea exactamente la misma que configuraste en Google Cloud Console
-  const redirectUri = "http://localhost:3000/oauth2callback"; // Esta URI debe coincidir con lo que configuraste en Google Cloud
+  const redirectUri = `http://localhost:${PORT}/oauth2callback`; // Esta URI debe coincidir con lo que configuraste en Google Cloud
 
   try {
     // Usamos URLSearchParams para enviar los parámetros en formato URL encoded
