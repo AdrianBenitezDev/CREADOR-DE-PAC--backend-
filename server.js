@@ -64,9 +64,9 @@ app.get("/oauth2callback", async (req, res) => {
       `https://adrianbenitezdev.github.io/CREADOR-DE-PAC/gmailPag.html?tok=${accessToken}`
     );
 
-    let respuestaEnviar = await obtenerEmailsConAsuntoDesignacion(accessToken);
+    //  let respuestaEnviar = await obtenerEmailsConAsuntoDesignacion(accessToken);
 
-    res.json(respuestaEnviar);
+    // res.json(respuestaEnviar);
     // Devuelve el access token al frontend
     //res.json({ access_token: accessToken });
   } catch (error) {
