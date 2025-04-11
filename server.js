@@ -81,15 +81,13 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
     console.log("No se pudo obtener un token.");
     return;
   } else {
-    console.log("Obteniendo mensajes con pausas de 200ms!");
+    console.log("Obteniendo mensajes únicos con pausas de 200ms...");
   }
 
-  // URL para realizar la consulta de correos con el asunto "Designación APD"
   const url =
     "https://www.googleapis.com/gmail/v1/users/me/messages?q=subject:Designación%20APD";
 
   try {
-    // Realizar la solicitud GET con el token de autorización
     const response = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -99,10 +97,12 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
     const data = response.data;
 
     if (data.messages && data.messages.length > 0) {
-      const messages = data.messages.slice(0, maxMensajes);
+      const threadIdsUnicos = new Set();
       const messageDetails = [];
 
-      for (const message of messages) {
+      for (const message of data.messages) {
+        if (messageDetails.length >= 10) break;
+
         try {
           const messageResponse = await axios.get(
             `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
@@ -112,9 +112,16 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
               },
             }
           );
-          messageDetails.push(messageResponse.data);
 
-          // Esperar 200ms entre cada request para evitar el límite de concurrencia
+          const detalle = messageResponse.data;
+
+          // Solo agregar si el threadId es nuevo
+          if (!threadIdsUnicos.has(detalle.threadId)) {
+            threadIdsUnicos.add(detalle.threadId);
+            messageDetails.push(detalle);
+          }
+
+          // Esperar 200ms para evitar sobrecarga
           await new Promise((resolve) => setTimeout(resolve, 200));
         } catch (error) {
           console.error(
