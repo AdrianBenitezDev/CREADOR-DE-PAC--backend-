@@ -5,6 +5,7 @@ const axios = require("axios");
 const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 10000;
+const maxMensajes = 10;
 
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
@@ -98,7 +99,7 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
     const data = response.data;
 
     if (data.messages && data.messages.length > 0) {
-      const messages = data.messages;
+      const messages = data.messages.slice(0, maxMensajes);
       const messageDetails = [];
 
       for (const message of messages) {
