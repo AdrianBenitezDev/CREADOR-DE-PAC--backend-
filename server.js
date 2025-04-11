@@ -79,6 +79,8 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
   if (!token) {
     console.log("No se pudo obtener un token.");
     return;
+  } else {
+    console.log("Obteniendo mensajes con pausas de 200ms!");
   }
 
   // URL para realizar la consulta de correos con el asunto "Designación APD"
@@ -92,27 +94,40 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
         Authorization: `Bearer ${token}`,
       },
     });
+
     const data = response.data;
 
     if (data.messages && data.messages.length > 0) {
-      // Obtener detalles completos de cada mensaje
       const messages = data.messages;
-      const messageDetailsPromises = messages.map(async (message) => {
-        const messageResponse = await axios.get(
-          `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        return messageResponse.data;
-      });
+      const messageDetails = [];
 
-      // Esperar a que todas las promesas se resuelvan y devolver los correos completos
-      const messageDetails = await Promise.all(messageDetailsPromises);
+      for (const message of messages) {
+        try {
+          const messageResponse = await axios.get(
+            `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          messageDetails.push(messageResponse.data);
+
+          // Esperar 200ms entre cada request para evitar el límite de concurrencia
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(
+            `Error al obtener el mensaje con ID ${message.id}:`,
+            error.message
+          );
+        }
+      }
+
       console.log(messageDetails);
       return messageDetails;
+    } else {
+      console.log("No se encontraron mensajes con ese asunto.");
+      return [];
     }
   } catch (error) {
     console.error(
