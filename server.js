@@ -4,13 +4,13 @@ const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
 
 app.get("/gmailPag.html", async (req, res) => {
-  console.warn("hola web gmail");
+  console.warn("redireccionando a gmailPag");
 });
 
 // Ruta para manejar la redirección después de la autenticación de Google
@@ -26,8 +26,9 @@ app.get("/oauth2callback", async (req, res) => {
   // Asegúrate de que la URI de redirección sea exactamente la misma que configuraste en Google Cloud Console
   //  const redirectUri = `http://localhost:${PORT}/oauth2callback`; // Esta URI debe coincidir con lo que configuraste en Google Cloud
   const redirectUri = `${
-    process.env.BASE_URL || `http://localhost:${PORT}`
-  }/oauth2callback`;
+    process.env.BASE_URL ||
+    `https://creador-de-pac-backend.onrender.com/oauth2callback`
+  }`;
 
   try {
     // Usamos URLSearchParams para enviar los parámetros en formato URL encoded
@@ -61,7 +62,9 @@ app.get("/oauth2callback", async (req, res) => {
     const accessToken = response.data.access_token;
     console.log("Access Token:", accessToken);
 
-    res.redirect(`http://127.0.0.1:5500/gmailPag.html?tok=${accessToken}`);
+    res.redirect(
+      `https://adrianbenitezdev.github.io/CREADOR-DE-PAC/gmailPag.html?tok=${accessToken}`
+    );
 
     let respuestaEnviar = await obtenerEmailsConAsuntoDesignacion(accessToken);
 
@@ -162,5 +165,5 @@ app.post("/getEmails", async (req, res) => {
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  console.log(`Servidor escuchando en puerto ${PORT}`);
 });
