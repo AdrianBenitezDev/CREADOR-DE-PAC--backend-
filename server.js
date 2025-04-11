@@ -101,7 +101,7 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
       const messageDetails = [];
 
       for (const message of data.messages) {
-        if (messageDetails.length >= 10) break;
+        if (messageDetails.length >= maxMensajes) break;
 
         try {
           const messageResponse = await axios.get(
