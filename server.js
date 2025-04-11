@@ -25,10 +25,7 @@ app.get("/oauth2callback", async (req, res) => {
 
   // Asegúrate de que la URI de redirección sea exactamente la misma que configuraste en Google Cloud Console
   //  const redirectUri = `http://localhost:${PORT}/oauth2callback`; // Esta URI debe coincidir con lo que configuraste en Google Cloud
-  const redirectUri = `${
-    process.env.BASE_URL ||
-    `https://creador-de-pac-backend.onrender.com/oauth2callback`
-  }`;
+  const redirectUri = `https://creador-de-pac-backend.onrender.com/oauth2callback`;
 
   try {
     // Usamos URLSearchParams para enviar los parámetros en formato URL encoded
