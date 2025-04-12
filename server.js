@@ -220,7 +220,7 @@ app.get("/descargar", async (req, res) => {
 //visualización previa antes de descargar
 
 app.get("/ver", async (req, res) => {
-  const rutaArchivo = path.join(__dirname, "plantilla.xlsx");
+  const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
 
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(rutaArchivo);
