@@ -9,9 +9,9 @@ const maxMensajes = 10;
 
 //excel
 
-const XLSX = require("xlsx");
-const fs = require("fs");
-const path = require("path");
+const ExcelJS = require('exceljs');
+const path = require('path');
+
 
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
@@ -195,35 +195,26 @@ app.post("/getEmails", async (req, res) => {
 app.get("/descargar", (req, res) => {
   console.log("escuchando -descargar-");
 
-  const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
 
-  // Leer el archivo original
-  const workbook = XLSX.readFile(rutaArchivo);
-  const hoja = workbook.Sheets[workbook.SheetNames[0]];
+  const rutaArchivo = path.join(__dirname, 'plantilla_pac.xlsx');
 
-  // Modificar la celda C19
-  hoja["C19"] = { t: "s", v: "Dato nuevo desde el servidor" };
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(rutaArchivo);
 
-  // Actualizar el rango si es necesario
-  const rango = XLSX.utils.decode_range(hoja["!ref"]);
-  rango.e.r = Math.max(rango.e.r, 18); // fila 19 (0 indexado)
-  rango.e.c = Math.max(rango.e.c, 2); // columna C (0 indexado)
-  hoja["!ref"] = XLSX.utils.encode_range(rango);
+  const worksheet = workbook.getWorksheet(1); // Primera hoja (también puedes usar nombre)
 
-  // Escribir en un archivo temporal
-  const archivoTemporal = path.join(__dirname, "plantilla-modificada.xlsx");
-  XLSX.writeFile(workbook, archivoTemporal);
+  worksheet.getCell('C19').value = 'new date';
 
-  // Enviar el archivo al cliente
-  res.download(archivoTemporal, "plantilla-modificada.xlsx", (err) => {
-    if (err) {
-      console.error("Error al enviar el archivo:", err);
-      res.status(500).send("Error al enviar el archivo");
-    } else {
-      // Opcional: eliminar archivo temporal si no lo necesitas
-      fs.unlink(archivoTemporal, () => {});
-    }
-  });
+  // Preparar para enviar el archivo directamente como descarga
+  res.setHeader(
+    'Content-Disposition',
+    'attachment; filename=plantilla-formateada.xlsx'
+  );
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+  await workbook.xlsx.write(res);
+  res.end();
+
 });
 
 // Iniciar el servidor
