@@ -217,6 +217,44 @@ app.get("/descargar", async (req, res) => {
   res.end();
 });
 
+//visualización previa antes de descargar
+
+app.get("/ver", async (req, res) => {
+  const rutaArchivo = path.join(__dirname, "plantilla.xlsx");
+
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(rutaArchivo);
+
+  const worksheet = workbook.getWorksheet(1);
+  worksheet.getCell("C19").value = "Dato previo a la descarga";
+
+  // Convertimos a HTML básico
+  let html = '<table border="1" cellpadding="5" cellspacing="0">';
+  worksheet.eachRow((row, rowNumber) => {
+    html += "<tr>";
+    row.eachCell((cell, colNumber) => {
+      html += `<td>${cell.value !== null ? cell.value : ""}</td>`;
+    });
+    html += "</tr>";
+  });
+  html += "</table>";
+
+  res.send(`
+    <html>
+      <head>
+        <title>Vista previa del Excel</title>
+        <style>table { border-collapse: collapse; } td { min-width: 80px; }</style>
+      </head>
+      <body>
+        <h2>Vista previa del archivo Excel</h2>
+        ${html}
+        <br><br>
+        <a href="/descargar">Descargar Excel con formato</a>
+      </body>
+    </html>
+  `);
+});
+
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
