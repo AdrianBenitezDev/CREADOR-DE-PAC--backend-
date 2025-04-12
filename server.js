@@ -228,34 +228,79 @@ app.get("/ver", async (req, res) => {
   const worksheet = workbook.getWorksheet(1);
   worksheet.getCell("C19").value = "Dato previo a la descarga";
 
-  // Convertimos a HTML básico
-  let html = '<table border="1" cellpadding="5" cellspacing="0">';
-  worksheet.eachRow((row, rowNumber) => {
+  const mergeMap = {};
+  worksheet._merges.forEach((merge) => {
+    const topLeft = merge.tl;
+    mergeMap[topLeft] = {
+      colspan: merge.br.col - merge.tl.col + 1,
+      rowspan: merge.br.row - merge.tl.row + 1,
+    };
+  });
+
+  let html = '<table border="1" style="border-collapse: collapse;">';
+
+  worksheet.eachRow((row, rowNum) => {
     html += "<tr>";
-    row.eachCell((cell, colNumber) => {
-      html += `<td>${cell.value !== null ? cell.value : ""}</td>`;
+    row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      const cellId = `${cell.address}`;
+      const merge = mergeMap[cellId];
+
+      // Evitar celdas que están dentro de una combinación pero no son la celda superior izquierda
+      if (
+        Object.values(mergeMap).some((m) => {
+          const start = worksheet.getCell(cellId)._mergeStart;
+          return start && start !== cellId;
+        })
+      ) {
+        return; // Saltamos celdas combinadas duplicadas
+      }
+
+      let style = "";
+      const font = cell.style?.font || {};
+      const fill = cell.style?.fill || {};
+      const alignment = cell.style?.alignment || {};
+
+      if (font.bold) style += "font-weight:bold;";
+      if (alignment.horizontal) style += `text-align:${alignment.horizontal};`;
+
+      if (fill.fgColor?.argb) {
+        const bg = `#${fill.fgColor.argb.slice(2)}`;
+        style += `background-color:${bg};`;
+      }
+
+      const colspan = merge?.colspan ? `colspan="${merge.colspan}"` : "";
+      const rowspan = merge?.rowspan ? `rowspan="${merge.rowspan}"` : "";
+
+      html += `<td ${colspan} ${rowspan} style="${style}">${
+        cell.value ?? ""
+      }</td>`;
     });
     html += "</tr>";
   });
+
   html += "</table>";
 
   res.send(`
     <html>
       <head>
         <title>Vista previa del Excel</title>
-        <style>table { border-collapse: collapse; } td { min-width: 80px; }</style>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          td { padding: 6px 12px; min-width: 80px; }
+        </style>
       </head>
       <body>
         <h2>Vista previa del archivo Excel</h2>
         ${html}
         <br><br>
-        <a href="/descargar">Descargar Excel con formato</a>
+        <a href="/descargar">📥 Descargar Excel con formato</a>
       </body>
     </html>
   `);
 });
 
 // Iniciar el servidor
+
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
   console.log("--versión con excel!");
