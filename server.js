@@ -218,7 +218,6 @@ app.get("/descargar", async (req, res) => {
 });
 
 //visualización previa antes de descargar
-
 app.get("/ver", async (req, res) => {
   const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
 
@@ -228,31 +227,45 @@ app.get("/ver", async (req, res) => {
   const worksheet = workbook.getWorksheet(1);
   worksheet.getCell("C19").value = "Dato previo a la descarga";
 
+  // Crear mapa de celdas combinadas
   const mergeMap = {};
-  worksheet._merges.forEach((merge) => {
-    const topLeft = merge.tl;
-    mergeMap[topLeft] = {
-      colspan: merge.br.col - merge.tl.col + 1,
-      rowspan: merge.br.row - merge.tl.row + 1,
+  worksheet._merges.forEach((mergeRange, key) => {
+    const [startCell, endCell] = key.split(":");
+    const start = worksheet.getCell(startCell);
+    const end = worksheet.getCell(endCell);
+
+    mergeMap[start.address] = {
+      colspan: end.col - start.col + 1,
+      rowspan: end.row - start.row + 1,
+      cellsInMerge: getMergedAddresses(start, end),
     };
   });
 
+  // Función auxiliar para generar todas las celdas incluidas en un merge
+  function getMergedAddresses(start, end) {
+    const addresses = [];
+    for (let r = start.row; r <= end.row; r++) {
+      for (let c = start.col; c <= end.col; c++) {
+        const addr = worksheet.getCell(r, c).address;
+        addresses.push(addr);
+      }
+    }
+    return addresses;
+  }
+
+  const skipCells = new Set();
   let html = '<table border="1" style="border-collapse: collapse;">';
 
   worksheet.eachRow((row, rowNum) => {
     html += "<tr>";
     row.eachCell({ includeEmpty: true }, (cell, colNum) => {
-      const cellId = `${cell.address}`;
-      const merge = mergeMap[cellId];
+      if (skipCells.has(cell.address)) return;
 
-      // Evitar celdas que están dentro de una combinación pero no son la celda superior izquierda
-      if (
-        Object.values(mergeMap).some((m) => {
-          const start = worksheet.getCell(cellId)._mergeStart;
-          return start && start !== cellId;
-        })
-      ) {
-        return; // Saltamos celdas combinadas duplicadas
+      const merge = mergeMap[cell.address];
+      if (merge) {
+        merge.cellsInMerge.forEach((addr) => {
+          if (addr !== cell.address) skipCells.add(addr);
+        });
       }
 
       let style = "";
@@ -303,5 +316,5 @@ app.get("/ver", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 2!");
+  console.log("--versión con excel 3!");
 });
