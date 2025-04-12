@@ -7,6 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 const maxMensajes = 10;
 
+//excel
+
+const XLSX = require("xlsx");
+const fs = require("fs");
+const path = require("path");
+
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
 
@@ -184,10 +190,6 @@ app.post("/getEmails", async (req, res) => {
 });
 
 //PARTE PARA REALIZAR UN ARCHIVO EXCEL Y ENVIARLO AL CLIENTE
-const express = require("express");
-const XLSX = require("xlsx");
-const fs = require("fs");
-const path = require("path");
 
 // Ruta para modificar el archivo y servirlo
 app.get("/descargar", (req, res) => {
