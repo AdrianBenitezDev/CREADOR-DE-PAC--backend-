@@ -6,6 +6,8 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 10000;
 const maxMensajes = 10;
+const htmlAnverso = `<tr style="height: 53px"><th id="412696113R18" style="height: 53px;" class="row-headers-background"><div class="row-header-wrapper" style="line-height: 53px">19</div></th><td class="s75" dir="ltr">{{111}}</td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s76"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s77"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s77"></td><td class="s77"></td><td class="s77"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s75"></td><td class="s77" dir="ltr">{{112}}</td></tr>`;
+const htmlReverso = `<tr style="height: 53px"><th id="1674768560R4" style="height: 53px;" class="row-headers-background"><div class="row-header-wrapper" style="line-height: 53px">5</div></th><td class="s9" dir="ltr">{{111}}</td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s10"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s11"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s11"></td><td class="s11"></td><td class="s11"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s9"></td><td class="s12"></td><td class="s13 softmerge" dir="ltr"><div class="softmerge-inner" style="width:64px;left:-18px">{{112}}</div></td><td class="s14"></td></tr>`;
 
 //excel
 
@@ -218,103 +220,28 @@ app.get("/descargar", async (req, res) => {
 });
 
 //visualización previa antes de descargar
+const fs = require("fs");
+
 app.get("/ver", async (req, res) => {
-  const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
+  const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
+  const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
 
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(rutaArchivo);
+  let html1 = fs.readFileSync(htmlPath, "utf8");
+  let html2 = fs.readFileSync(htmlPathReverso, "utf8");
 
-  const worksheet = workbook.getWorksheet(1);
-  worksheet.getCell("C19").value = "Dato previo a la descarga";
+  // Reemplazar valores dinámicos
+  html1.replace("{{inyectorAnverso}}", htmlAnverso);
+  html2.replace("{{inyectorReverso}}", htmlReverso);
+  let htmlC = html1 + html2;
 
-  // Crear mapa de celdas combinadas
-  const mergeMap = {};
-  worksheet._merges.forEach((mergeRange, key) => {
-    const [startCell, endCell] = key.split(":");
-    const start = worksheet.getCell(startCell);
-    const end = worksheet.getCell(endCell);
+  // Agregás todos los reemplazos que necesites
 
-    mergeMap[start.address] = {
-      colspan: end.col - start.col + 1,
-      rowspan: end.row - start.row + 1,
-      cellsInMerge: getMergedAddresses(start, end),
-    };
-  });
-
-  // Función auxiliar para generar todas las celdas incluidas en un merge
-  function getMergedAddresses(start, end) {
-    const addresses = [];
-    for (let r = start.row; r <= end.row; r++) {
-      for (let c = start.col; c <= end.col; c++) {
-        const addr = worksheet.getCell(r, c).address;
-        addresses.push(addr);
-      }
-    }
-    return addresses;
-  }
-
-  const skipCells = new Set();
-  let html = '<table border="1" style="border-collapse: collapse;">';
-
-  worksheet.eachRow((row, rowNum) => {
-    html += "<tr>";
-    row.eachCell({ includeEmpty: true }, (cell, colNum) => {
-      if (skipCells.has(cell.address)) return;
-
-      const merge = mergeMap[cell.address];
-      if (merge) {
-        merge.cellsInMerge.forEach((addr) => {
-          if (addr !== cell.address) skipCells.add(addr);
-        });
-      }
-
-      let style = "";
-      const font = cell.style?.font || {};
-      const fill = cell.style?.fill || {};
-      const alignment = cell.style?.alignment || {};
-
-      if (font.bold) style += "font-weight:bold;";
-      if (alignment.horizontal) style += `text-align:${alignment.horizontal};`;
-
-      if (fill.fgColor?.argb) {
-        const bg = `#${fill.fgColor.argb.slice(2)}`;
-        style += `background-color:${bg};`;
-      }
-
-      const colspan = merge?.colspan ? `colspan="${merge.colspan}"` : "";
-      const rowspan = merge?.rowspan ? `rowspan="${merge.rowspan}"` : "";
-
-      html += `<td ${colspan} ${rowspan} style="${style}">${
-        cell.value ?? ""
-      }</td>`;
-    });
-    html += "</tr>";
-  });
-
-  html += "</table>";
-
-  res.send(`
-    <html>
-      <head>
-        <title>Vista previa del Excel</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          td { padding: 6px 12px; min-width: 80px; }
-        </style>
-      </head>
-      <body>
-        <h2>Vista previa del archivo Excel</h2>
-        ${html}
-        <br><br>
-        <a href="/descargar">📥 Descargar Excel con formato</a>
-      </body>
-    </html>
-  `);
+  res.send(htmlC);
 });
 
 // Iniciar el servidor
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 3!");
+  console.log("--versión con excel 4!");
 });
