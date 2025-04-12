@@ -193,6 +193,8 @@ app.post("/getEmails", async (req, res) => {
 
 // Ruta para modificar el archivo y servirlo
 app.get("/descargar", (req, res) => {
+  console.log("escuchando -descargar-");
+
   const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
 
   // Leer el archivo original
