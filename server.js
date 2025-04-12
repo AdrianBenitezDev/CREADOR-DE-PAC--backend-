@@ -9,9 +9,8 @@ const maxMensajes = 10;
 
 //excel
 
-const ExcelJS = require('exceljs');
-const path = require('path');
-
+const ExcelJS = require("exceljs");
+const path = require("path");
 
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
@@ -192,29 +191,30 @@ app.post("/getEmails", async (req, res) => {
 //PARTE PARA REALIZAR UN ARCHIVO EXCEL Y ENVIARLO AL CLIENTE
 
 // Ruta para modificar el archivo y servirlo
-app.get("/descargar", (req, res) => {
+app.get("/descargar", async (req, res) => {
   console.log("escuchando -descargar-");
 
-
-  const rutaArchivo = path.join(__dirname, 'plantilla_pac.xlsx');
+  const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
 
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(rutaArchivo);
 
   const worksheet = workbook.getWorksheet(1); // Primera hoja (también puedes usar nombre)
 
-  worksheet.getCell('C19').value = 'new date';
+  worksheet.getCell("C19").value = "new date";
 
   // Preparar para enviar el archivo directamente como descarga
   res.setHeader(
-    'Content-Disposition',
-    'attachment; filename=plantilla-formateada.xlsx'
+    "Content-Disposition",
+    "attachment; filename=plantilla-formateada.xlsx"
   );
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
 
   await workbook.xlsx.write(res);
   res.end();
-
 });
 
 // Iniciar el servidor
