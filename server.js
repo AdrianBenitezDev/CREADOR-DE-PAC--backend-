@@ -183,8 +183,47 @@ app.post("/getEmails", async (req, res) => {
   }
 });
 
+//PARTE PARA REALIZAR UN ARCHIVO EXCEL Y ENVIARLO AL CLIENTE
+const express = require("express");
+const XLSX = require("xlsx");
+const fs = require("fs");
+const path = require("path");
+
+// Ruta para modificar el archivo y servirlo
+app.get("/descargar", (req, res) => {
+  const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
+
+  // Leer el archivo original
+  const workbook = XLSX.readFile(rutaArchivo);
+  const hoja = workbook.Sheets[workbook.SheetNames[0]];
+
+  // Modificar la celda C19
+  hoja["C19"] = { t: "s", v: "Dato nuevo desde el servidor" };
+
+  // Actualizar el rango si es necesario
+  const rango = XLSX.utils.decode_range(hoja["!ref"]);
+  rango.e.r = Math.max(rango.e.r, 18); // fila 19 (0 indexado)
+  rango.e.c = Math.max(rango.e.c, 2); // columna C (0 indexado)
+  hoja["!ref"] = XLSX.utils.encode_range(rango);
+
+  // Escribir en un archivo temporal
+  const archivoTemporal = path.join(__dirname, "plantilla-modificada.xlsx");
+  XLSX.writeFile(workbook, archivoTemporal);
+
+  // Enviar el archivo al cliente
+  res.download(archivoTemporal, "plantilla-modificada.xlsx", (err) => {
+    if (err) {
+      console.error("Error al enviar el archivo:", err);
+      res.status(500).send("Error al enviar el archivo");
+    } else {
+      // Opcional: eliminar archivo temporal si no lo necesitas
+      fs.unlink(archivoTemporal, () => {});
+    }
+  });
+});
+
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--actualziado!");
+  console.log("--versión con excel!");
 });
