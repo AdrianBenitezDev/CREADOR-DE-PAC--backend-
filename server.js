@@ -234,7 +234,7 @@ app.post("/generarPac", async (req, res) => {
 const fs = require("fs");
 
 app.post("/ver", async (req, res) => {
-  const datosPac = req.body;
+  const datosPac = req.body.objeto;
 
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
   const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
@@ -309,5 +309,5 @@ app.post("/ver", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 8!");
+  console.log("--versión con excel 9!");
 });
