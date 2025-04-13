@@ -194,7 +194,9 @@ app.post("/getEmails", async (req, res) => {
 
 // Ruta para modificar el archivo y servirlo
 app.post("/generarPac", async (req, res) => {
-  const datosPac = JSON.parse(req.body.objeto);
+  const datosPac = req.body.objeto;
+  console.log("----datosPac");
+  console.log(datosPac);
 
   console.log("escuchando -descargar-");
 
