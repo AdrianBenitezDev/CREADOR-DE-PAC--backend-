@@ -65,7 +65,7 @@ app.get("/oauth2callback", async (req, res) => {
     );
 
     const accessToken = response.data.access_token;
-    console.log("Access Token:", accessToken);
+    //console.log("Access Token:", accessToken);
 
     res.redirect(
       `https://adrianbenitezdev.github.io/CREADOR-DE-PAC/gmailPag.html?tok=${accessToken}`
@@ -83,7 +83,7 @@ app.get("/oauth2callback", async (req, res) => {
 });
 
 async function obtenerEmailsConAsuntoDesignacion(token) {
-  console.log(token);
+  //console.log(token);
   if (!token) {
     console.log("No se pudo obtener un token.");
     return;
@@ -138,7 +138,7 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
         }
       }
 
-      console.log(messageDetails);
+      //console.log(messageDetails);
       return messageDetails;
     } else {
       console.log("No se encontraron mensajes con ese asunto.");
@@ -154,7 +154,7 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
 
 app.post("/obtenerMails", async (req, res) => {
   const token = req.body.token;
-  console.log(token);
+  //console.log(token);
   let resEnviar = await obtenerEmailsConAsuntoDesignacion(token);
   res.json(resEnviar);
 });
@@ -182,7 +182,7 @@ app.post("/getEmails", async (req, res) => {
     );
 
     // Si la solicitud es exitosa, se devuelve la lista de mensajes
-    console.log("Emails:", response.data);
+    //console.log("Emails:", response.data);
     res.json(response.data); // Devolver la lista de correos al frontend
   } catch (error) {
     console.error("Error al obtener los correos:", error);
