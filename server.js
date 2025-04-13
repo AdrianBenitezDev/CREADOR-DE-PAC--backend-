@@ -193,7 +193,9 @@ app.post("/getEmails", async (req, res) => {
 //PARTE PARA REALIZAR UN ARCHIVO EXCEL Y ENVIARLO AL CLIENTE
 
 // Ruta para modificar el archivo y servirlo
-app.get("/descargar", async (req, res) => {
+app.post("/generarPac", async (req, res) => {
+  const datosPac = req.body;
+
   console.log("escuchando -descargar-");
 
   const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
@@ -203,7 +205,17 @@ app.get("/descargar", async (req, res) => {
 
   const worksheet = workbook.getWorksheet(1); // Primera hoja (también puedes usar nombre)
 
-  worksheet.getCell("C19").value = "new date";
+  datosPac.forEach((fila, numeroFila) => {
+    worksheet.getCell(`A${19 + numeroFila}`).value = fila.cupof; //cupof a19
+    worksheet.getCell(`D${19 + numeroFila}`).value = fila.dni; //dni
+    worksheet.getCell(`G${19 + numeroFila}`).value = fila.name; //name
+    worksheet.getCell(`H${19 + numeroFila}`).value = fila.revista; //resvista
+    worksheet.getCell(`J${19 + numeroFila}`).value = fila.pid; //resvista
+    worksheet.getCell(`K${19 + numeroFila}`).value = fila.mod; //mod
+    worksheet.getCell(`M${19 + numeroFila}`).value = fila.year; //año
+    worksheet.getCell(`N${19 + numeroFila}`).value = fila.seccion; //seccion
+    worksheet.getCell(`O${19 + numeroFila}`).value = fila.turno; //turno
+  });
 
   // Preparar para enviar el archivo directamente como descarga
   res.setHeader(
@@ -222,15 +234,70 @@ app.get("/descargar", async (req, res) => {
 //visualización previa antes de descargar
 const fs = require("fs");
 
-app.get("/ver", async (req, res) => {
+app.post("/ver", async (req, res) => {
+  const datosPac = req.body;
+
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
   const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
 
   let html1 = fs.readFileSync(htmlPath, "utf8");
   let html2 = fs.readFileSync(htmlPathReverso, "utf8");
 
+  let agregarHTML = "";
+
+  datosPac.forEach((fila, numeroFila) => {
+    let filaActual = 19 + numeroFila;
+    agregarHTML += `<tr style="height: 53px">
+    <th id="412696113R18" style="height: 53px;" class="row-headers-background">
+    <div class="row-header-wrapper" style="line-height: 53px">${filaActual}</div>
+    </th><td class="s75" dir="ltr">${datosPac.cupof}</td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75">${datosPac.dni}</td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s76">${datosPac.name}</td>
+         <td class="s75">${datosPac.revista}</td>
+         <td class="s75"></td>
+         <td class="s75">${datosPac.pid}</td>
+         <td class="s75">${datosPac.mmod}</td>
+         <td class="s75"></td>
+         <td class="s75">${datosPac.year}</td>
+         <td class="s75">${datosPac.seccion}</td>
+         <td class="s75">${datosPac.turno}</td>
+         <td class="s77"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s77"></td>
+         <td class="s77"></td>
+         <td class="s77"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s75"></td>
+         <td class="s77" dir="ltr">{{112}}</td>
+         </tr>`;
+  });
+
   // Reemplazar valores dinámicos
-  html1.replace("{{inyectorAnverso}}", htmlAnverso);
+  html1.replace("<tr>inyectorAnverso</tr>", agregarHTML);
   html2.replace("{{inyectorReverso}}", htmlReverso);
   let htmlC = html1 + html2;
 
@@ -243,5 +310,5 @@ app.get("/ver", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 4!");
+  console.log("--versión con excel 5!");
 });
