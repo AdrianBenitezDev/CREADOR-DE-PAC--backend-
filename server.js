@@ -194,7 +194,7 @@ app.post("/getEmails", async (req, res) => {
 
 // Ruta para modificar el archivo y servirlo
 app.post("/generarPac", async (req, res) => {
-  const datosPac = req.body;
+  const datosPac = JSON.parse(req.body.objeto);
 
   console.log("escuchando -descargar-");
 
@@ -310,5 +310,5 @@ app.post("/ver", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 5!");
+  console.log("--versión con excel 7!");
 });
