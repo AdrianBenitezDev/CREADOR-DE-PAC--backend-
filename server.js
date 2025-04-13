@@ -159,9 +159,6 @@ app.post("/obtenerMails", async (req, res) => {
   res.json(resEnviar);
 });
 
-// Middleware para manejar el acceso al token
-app.use(express.json()); // Asegura que se pueda recibir el JSON en el cuerpo de la solicitud
-
 // Ruta para leer los correos electrónicos
 app.post("/getEmails", async (req, res) => {
   const { access_token } = req.body; // El Access Token debe ser enviado desde el frontend
