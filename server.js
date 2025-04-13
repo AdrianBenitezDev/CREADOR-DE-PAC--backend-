@@ -232,7 +232,6 @@ app.post("/generarPac", async (req, res) => {
 
 //visualización previa antes de descargar
 const fs = require("fs");
-
 app.post("/ver", async (req, res) => {
   const datosPac = req.body.objeto;
 
@@ -250,60 +249,58 @@ app.post("/ver", async (req, res) => {
   datosPac.forEach((fila, numeroFila) => {
     let filaActual = 19 + numeroFila;
     agregarHTML += `<tr style="height: 53px">
-    <th id="412696113R18" style="height: 53px;" class="row-headers-background">
-    <div class="row-header-wrapper" style="line-height: 53px">${filaActual}</div>
-    </th><td class="s75" dir="ltr">${fila.cupof}</td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75">${fila.dni}</td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s76">${fila.name}</td>
-         <td class="s75">${fila.revista}</td>
-         <td class="s75"></td>
-         <td class="s75">${fila.pid}</td>
-         <td class="s75">${fila.mmod}</td>
-         <td class="s75"></td>
-         <td class="s75">${fila.year}</td>
-         <td class="s75">${fila.seccion}</td>
-         <td class="s75">${fila.turno}</td>
-         <td class="s77"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s77"></td>
-         <td class="s77"></td>
-         <td class="s77"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s75"></td>
-         <td class="s77" dir="ltr">{{112}}</td>
-         </tr>`;
+      <th id="412696113R18" style="height: 53px;" class="row-headers-background">
+        <div class="row-header-wrapper" style="line-height: 53px">${filaActual}</div>
+      </th>
+      <td class="s75" dir="ltr">${fila.cupof}</td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75">${fila.dni}</td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s76">${fila.name}</td>
+      <td class="s75">${fila.revista}</td>
+      <td class="s75"></td>
+      <td class="s75">${fila.pid}</td>
+      <td class="s75">${fila.mmod}</td>
+      <td class="s75"></td>
+      <td class="s75">${fila.year}</td>
+      <td class="s75">${fila.seccion}</td>
+      <td class="s75">${fila.turno}</td>
+      <td class="s77"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s77"></td>
+      <td class="s77"></td>
+      <td class="s77"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s75"></td>
+      <td class="s77" dir="ltr">{{112}}</td>
+    </tr>`;
   });
 
-  // Reemplazar valores dinámicos
-  html1.replace("<tr>inyectorAnverso</tr>", agregarHTML);
-  html2.replace("{{inyectorReverso}}", htmlReverso);
-  let htmlC = html1 + html2;
+  html1 = html1.replace("<tr>inyectorAnverso</tr>", agregarHTML);
+  html2 = html2.replace("{{inyectorReverso}}", htmlReverso || "");
 
-  // Agregás todos los reemplazos que necesites
+  const htmlC = html1 + html2;
 
   res.send(htmlC);
 });
@@ -312,5 +309,5 @@ app.post("/ver", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 10!");
+  console.log("--versión con excel 12!");
 });
