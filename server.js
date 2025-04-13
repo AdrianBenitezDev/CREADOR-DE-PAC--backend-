@@ -249,21 +249,21 @@ app.post("/ver", async (req, res) => {
     agregarHTML += `<tr style="height: 53px">
     <th id="412696113R18" style="height: 53px;" class="row-headers-background">
     <div class="row-header-wrapper" style="line-height: 53px">${filaActual}</div>
-    </th><td class="s75" dir="ltr">${datosPac.cupof}</td>
+    </th><td class="s75" dir="ltr">${fila.cupof}</td>
          <td class="s75"></td>
          <td class="s75"></td>
-         <td class="s75">${datosPac.dni}</td>
+         <td class="s75">${fila.dni}</td>
          <td class="s75"></td>
          <td class="s75"></td>
-         <td class="s76">${datosPac.name}</td>
-         <td class="s75">${datosPac.revista}</td>
+         <td class="s76">${fila.name}</td>
+         <td class="s75">${fila.revista}</td>
          <td class="s75"></td>
-         <td class="s75">${datosPac.pid}</td>
-         <td class="s75">${datosPac.mmod}</td>
+         <td class="s75">${fila.pid}</td>
+         <td class="s75">${fila.mmod}</td>
          <td class="s75"></td>
-         <td class="s75">${datosPac.year}</td>
-         <td class="s75">${datosPac.seccion}</td>
-         <td class="s75">${datosPac.turno}</td>
+         <td class="s75">${fila.year}</td>
+         <td class="s75">${fila.seccion}</td>
+         <td class="s75">${fila.turno}</td>
          <td class="s77"></td>
          <td class="s75"></td>
          <td class="s75"></td>
@@ -309,5 +309,5 @@ app.post("/ver", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 7!");
+  console.log("--versión con excel 8!");
 });
