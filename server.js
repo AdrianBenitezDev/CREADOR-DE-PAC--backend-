@@ -236,7 +236,7 @@ app.post("/ver", async (req, res) => {
   const datosPac = req.body.objeto;
 
   console.log("--ver");
-  console.log(datosPac);
+  //console.log(datosPac);
 
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
   const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
