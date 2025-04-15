@@ -197,7 +197,7 @@ app.post("/generarPac", async (req, res) => {
 
   console.log("escuchando -descargar-");
 
-  const rutaArchivo = path.join(__dirname, "plantilla_pac.xlsx");
+  const rutaArchivo = path.join(__dirname, `plantilla_pac_${maxMensajes}.xlsx`);
 
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(rutaArchivo);
@@ -297,7 +297,7 @@ app.post("/ver", async (req, res) => {
     </tr>`;
   });
 
-  html1 = html1.replace("<tr>inyectorAnverso</tr>", agregarHTML);
+  html1 = html1.replace("<tr><td>inyectorAnverso</td></tr>", agregarHTML);
   html2 = html2.replace("{{inyectorReverso}}", htmlReverso || "");
 
   const htmlC = html1 + html2;
@@ -309,5 +309,5 @@ app.post("/ver", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 12!");
+  console.log("--versión con excel 1!");
 });
