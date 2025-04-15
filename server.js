@@ -192,6 +192,8 @@ app.post("/getEmails", async (req, res) => {
 // Ruta para modificar el archivo y servirlo
 app.post("/generarPac", async (req, res) => {
   const datosPac = req.body.objeto;
+  const headerPac = req.body.headerPac;
+
   console.log("----datosPac");
   console.log(datosPac);
 
@@ -203,6 +205,18 @@ app.post("/generarPac", async (req, res) => {
   await workbook.xlsx.readFile(rutaArchivo);
 
   const worksheet = workbook.getWorksheet(1); // Primera hoja (también puedes usar nombre)
+
+  //aleramos celdas puntuales
+  worksheet.getCell("A5").value = "Domicilio: " + headerPac.domicilio;
+  worksheet.getCell("A6").value = "Telefono: " + headerPac.telefono;
+  worksheet.getCell("A10").value = "Categoria: " + headerPac.categoria;
+  worksheet.getCell("A11").value = "Turno: " + headerPac.Turno;
+  worksheet.getCell("A12").value =
+    "Desfavorabilidad: " + headerPac.desfavorabilidad;
+  worksheet.getCell("K6").value = headerPac.titlePac;
+  worksheet.getCell("AI5").value = headerPac.numDistrito;
+  worksheet.getCell("AM5").value = headerPac.tipoOrganizacion;
+  worksheet.getCell("AQ5").value = headerPac.escuela;
 
   datosPac.forEach((fila, numeroFila) => {
     worksheet.getCell(`A${19 + numeroFila}`).value = fila.cupof; //cupof a19
@@ -234,6 +248,7 @@ app.post("/generarPac", async (req, res) => {
 const fs = require("fs");
 app.post("/ver", async (req, res) => {
   const datosPac = req.body.objeto;
+  const headerPac = req.body.headerPac;
 
   console.log("--ver");
   //console.log(datosPac);
@@ -250,7 +265,7 @@ app.post("/ver", async (req, res) => {
     let filaActual = 19 + numeroFila;
     agregarHTML += `<tr style="height: 53px">
       <th id="412696113R18" style="height: 53px;" class="row-headers-background">
-        <div class="row-header-wrapper" style="line-height: 53px">${filaActual}</div>
+        <div class="row-header-wrapper" style="line-height: 53px"></div>
       </th>
       <td class="s75" dir="ltr">${fila.cupof}</td>
       <td class="s75"></td>
@@ -293,9 +308,22 @@ app.post("/ver", async (req, res) => {
       <td class="s75"></td>
       <td class="s75"></td>
       <td class="s75"></td>
-      <td class="s77" dir="ltr">{{112}}</td>
+      <td class="s77" dir="ltr"></td>
     </tr>`;
   });
+
+  html1 = html1.replace("{{domicilio}}", headerPac.domicilio);
+  html1 = html1.replace("{{telefono}}", headerPac.telefono);
+  html1 = html1.replace("{{emmail}}", headerPac.email);
+
+  html1 = html1.replace("{{categoria}}", headerPac.categoria);
+  html1 = html1.replace("{{turno}}", headerPac.turno);
+  html1 = html1.replace("{{desforabilidad}}", headerPac.desfavorabilidad);
+
+  html1 = html1.replace("{{PAC}}", headerPac.titlePac);
+  html1 = html1.replace("{{numDistrito}}", headerPac.numDistrito);
+  html1 = html1.replace("{{organziacion}}", headerPac.tipoOrganizacion);
+  html1 = html1.replace("{{escuela}}", headerPac.escuela);
 
   html1 = html1.replace("<tr><td>inyectorAnverso</td></tr>", agregarHTML);
   html2 = html2.replace("{{inyectorReverso}}", htmlReverso || "");
