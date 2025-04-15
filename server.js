@@ -311,18 +311,17 @@ app.post("/ver", async (req, res) => {
       <td class="s77" dir="ltr"></td>
     </tr>`;
   });
-
   html1 = html1.replace("{{domicilio}}", headerPac.domicilio);
   html1 = html1.replace("{{telefono}}", headerPac.telefono);
-  html1 = html1.replace("{{emmail}}", headerPac.email);
+  html1 = html1.replace("{{email}}", headerPac.email);
 
   html1 = html1.replace("{{categoria}}", headerPac.categoria);
   html1 = html1.replace("{{turno}}", headerPac.turno);
-  html1 = html1.replace("{{desforabilidad}}", headerPac.desfavorabilidad);
+  html1 = html1.replace("{{desfavorabilidad}}", headerPac.desfavorabilidad);
 
-  html1 = html1.replace("{{PAC}}", headerPac.titlePac);
-  html1 = html1.replace("{{numDistrito}}", headerPac.numDistrito);
-  html1 = html1.replace("{{organziacion}}", headerPac.tipoOrganizacion);
+  html1 = html1.replace("{{PAC}}", headerPac.titlePac || ""); // solo si existe esa propiedad
+  html1 = html1.replace("{{distrito}}", headerPac.distrito); // según el nombre que usás
+  html1 = html1.replace("{{tipoOrganizacion}}", headerPac.tipoOrganizacion);
   html1 = html1.replace("{{escuela}}", headerPac.escuela);
 
   html1 = html1.replace("<tr><td>inyectorAnverso</td></tr>", agregarHTML);
