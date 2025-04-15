@@ -262,7 +262,6 @@ app.post("/ver", async (req, res) => {
   let agregarHTML = "";
 
   datosPac.forEach((fila, numeroFila) => {
-    s;
     agregarHTML += `<tr style="height: 53px">
       <th id="412696113R18" style="height: 53px;" class="row-headers-background">
         <div class="row-header-wrapper" style="line-height: 53px"></div>
