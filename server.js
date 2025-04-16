@@ -193,6 +193,7 @@ app.post("/getEmails", async (req, res) => {
 app.post("/generarPac", async (req, res) => {
   const datosPac = req.body.objeto;
   const headerPac = req.body.headerPac;
+  console.log(headerPac);
 
   console.log("----datosPac");
   console.log(datosPac);
@@ -210,7 +211,7 @@ app.post("/generarPac", async (req, res) => {
   worksheet.getCell("A5").value = "Domicilio: " + headerPac.domicilio;
   worksheet.getCell("A6").value = "Telefono: " + headerPac.telefono;
   worksheet.getCell("A10").value = "Categoria: " + headerPac.categoria;
-  worksheet.getCell("A11").value = "Turno: " + headerPac.Turno;
+  worksheet.getCell("A11").value = "Turno: " + headerPac.turno;
   worksheet.getCell("A12").value =
     "Desfavorabilidad: " + headerPac.desfavorabilidad;
   worksheet.getCell("K6").value = headerPac.titlePac;
