@@ -252,6 +252,7 @@ app.post("/ver", async (req, res) => {
 
   console.log("--ver");
   console.log(headerPac);
+  console.log(JSON.parse(headerPac));
   console.log(headerPac.domicilio);
 
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
