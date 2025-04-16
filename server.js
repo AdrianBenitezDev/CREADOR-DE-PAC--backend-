@@ -193,7 +193,6 @@ app.post("/getEmails", async (req, res) => {
 app.post("/generarPac", async (req, res) => {
   const datosPac = req.body.objeto;
   const headerPac = req.body.headerPac;
-  console.log(headerPac);
 
   console.log("----datosPac");
   console.log(datosPac);
@@ -252,7 +251,7 @@ app.post("/ver", async (req, res) => {
   const headerPac = req.body.headerPac;
 
   console.log("--ver");
-  //console.log(datosPac);
+  console.log(headerPac);
 
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
   const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
