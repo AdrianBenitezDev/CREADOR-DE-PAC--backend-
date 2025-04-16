@@ -252,6 +252,7 @@ app.post("/ver", async (req, res) => {
 
   console.log("--ver");
   console.log(headerPac);
+  console.log(headerPac.domicilio);
 
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
   const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
@@ -320,7 +321,7 @@ app.post("/ver", async (req, res) => {
 
   html1 = html1.replace("{{PAC}}", headerPac.titlePac || ""); // solo si existe esa propiedad
   html1 = html1.replace("{{distrito}}", headerPac.distrito); // según el nombre que usás
-  html1 = html1.replace("{{tipoOrganizacion}}", headerPac.tipoOrganizacion);
+  html1 = html1.replace("{{organizacion}}", headerPac.tipoOrganizacion);
   html1 = html1.replace("{{escuela}}", headerPac.escuela);
 
   html1 = html1.replace("<tr><td>inyectorAnverso</td></tr>", agregarHTML);
