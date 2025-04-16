@@ -192,12 +192,7 @@ app.post("/getEmails", async (req, res) => {
 // Ruta para modificar el archivo y servirlo
 app.post("/generarPac", async (req, res) => {
   const datosPac = req.body.objeto;
-  const headerPac = req.body.headerPac;
-
-  console.log("----datosPac");
-  console.log(datosPac);
-
-  console.log("escuchando -descargar-");
+  const headerPac = JSON.parse(req.body.headerPac);
 
   const rutaArchivo = path.join(__dirname, `plantilla_pac_${maxMensajes}.xlsx`);
 
@@ -251,9 +246,6 @@ app.post("/ver", async (req, res) => {
   const headerPac = JSON.parse(req.body.headerPac);
 
   console.log("--ver");
-  console.log(headerPac);
-  //console.log(JSON.parse(headerPac));
-  console.log(headerPac.domicilio);
 
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
   const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
