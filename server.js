@@ -248,11 +248,11 @@ app.post("/generarPac", async (req, res) => {
 const fs = require("fs");
 app.post("/ver", async (req, res) => {
   const datosPac = req.body.objeto;
-  const headerPac = req.body.headerPac;
+  const headerPac = JSON.parse(req.body.headerPac);
 
   console.log("--ver");
   console.log(headerPac);
-  console.log(JSON.parse(headerPac));
+  //console.log(JSON.parse(headerPac));
   console.log(headerPac.domicilio);
 
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
