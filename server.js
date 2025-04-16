@@ -313,7 +313,7 @@ app.post("/ver", async (req, res) => {
   html1 = html1.replace("{{desfavorabilidad}}", headerPac.desfavorabilidad);
 
   html1 = html1.replace("{{PAC}}", headerPac.titlePac || ""); // solo si existe esa propiedad
-  html1 = html1.replace("{{distrito}}", headerPac.distrito); // según el nombre que usás
+  html1 = html1.replace("{{distrito}}", headerPac.numDistrito); // según el nombre que usás
   html1 = html1.replace("{{organizacion}}", headerPac.tipoOrganizacion);
   html1 = html1.replace("{{escuela}}", headerPac.escuela);
 
