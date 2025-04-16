@@ -248,10 +248,10 @@ app.post("/ver", async (req, res) => {
   console.log("--ver");
 
   const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
-  const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
+  //const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
 
   let html1 = fs.readFileSync(htmlPath, "utf8");
-  let html2 = fs.readFileSync(htmlPathReverso, "utf8");
+  //let html2 = fs.readFileSync(htmlPathReverso, "utf8");
 
   let agregarHTML = "";
 
@@ -318,9 +318,9 @@ app.post("/ver", async (req, res) => {
   html1 = html1.replace("{{escuela}}", headerPac.escuela);
 
   html1 = html1.replace("<tr><td>inyectorAnverso</td></tr>", agregarHTML);
-  html2 = html2.replace("{{inyectorReverso}}", htmlReverso || "");
+  //html2 = html2.replace("{{inyectorReverso}}", htmlReverso || "");
 
-  const htmlC = html1 + html2;
+  const htmlC = html1;
 
   res.send(htmlC);
 });
