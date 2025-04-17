@@ -402,7 +402,10 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
       //console.log(messageDetails);
       return messageDetails;
     } else {
-      console.log("No se encontraron mensajes con ese asunto.");
+      console.log(
+        "No se encontraron coincidencias con los parametros ingresados"
+      );
+      console.log(url);
       return [];
     }
   } catch (error) {
