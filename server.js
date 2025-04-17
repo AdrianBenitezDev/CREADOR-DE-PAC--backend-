@@ -44,8 +44,10 @@ app.get("/oauth2callback", async (req, res) => {
       "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
     ); // Tu client_id
 
+    // Solo lectura de correos de Gmail y lectura del perfil
     const SCOPES = [
-      "https://www.googleapis.com/auth/gmail.readonly", // Solo lectura de correos de Gmail
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/userinfo.profile",
     ];
 
     params.append("client_secret", "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"); // Tu client_secret
