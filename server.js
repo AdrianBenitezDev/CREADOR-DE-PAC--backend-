@@ -349,8 +349,7 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
   }
 
   //preparamos los datos para concatenarlos en la URL
-
-  let datosConsultaPreparado = datosConsulta.replaceAll(" ", "%20");
+  let datosConsultaPreparado = encodeURIComponent(datosConsulta);
 
   const url =
     "https://www.googleapis.com/gmail/v1/users/me/messages?q=subject:Designación%20APD%20" +
