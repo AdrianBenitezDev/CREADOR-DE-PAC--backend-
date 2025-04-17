@@ -21,66 +21,60 @@ app.get("/gmailPag.html", async (req, res) => {
   console.warn("redireccionando a gmailPag");
 });
 
-// Ruta para manejar la redirección después de la autenticación de Google
 app.get("/oauth2callback", async (req, res) => {
-  const code = req.query.code; // El código de autorización que Google envía como query string
+  const code = req.query.code;
+  if (!code) return res.status(400).send("Falta el código");
 
-  if (!code) {
-    return res
-      .status(400)
-      .send("Error: No se recibió el código de autorización");
-  }
-
-  // Asegúrate de que la URI de redirección sea exactamente la misma que configuraste en Google Cloud Console
-  //  const redirectUri = `http://localhost:${PORT}/oauth2callback`; // Esta URI debe coincidir con lo que configuraste en Google Cloud
-  const redirectUri = `https://creador-de-pac-backend.onrender.com/oauth2callback`;
+  const redirectUri =
+    "https://creador-de-pac-backend.onrender.com/oauth2callback";
 
   try {
-    // Usamos URLSearchParams para enviar los parámetros en formato URL encoded
     const params = new URLSearchParams();
     params.append("code", code);
     params.append(
       "client_id",
       "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
-    ); // Tu client_id
-
-    // Solo lectura de correos de Gmail y lectura del perfil
-    const SCOPES = [
-      "https://www.googleapis.com/auth/gmail.readonly",
-      "https://www.googleapis.com/auth/userinfo.profile",
-    ];
-
-    params.append("client_secret", "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"); // Tu client_secret
-    params.append("redirect_uri", redirectUri); // La misma URI de redirección
+    );
+    params.append("client_secret", "MY_CLIENT_SECRET");
+    params.append("redirect_uri", redirectUri);
     params.append("grant_type", "authorization_code");
-    params.append("scope", SCOPES); // Alcance de solo lectura de Gmail
 
-    // Realizamos la solicitud POST a Google para obtener el access token
-    const response = await axios.post(
+    const tokenRes = await axios.post(
       "https://oauth2.googleapis.com/token",
-      params, // Pasamos los parámetros como datos del cuerpo
+      params,
       {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded", // Indicamos que los datos se envían como formulario URL encoded
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
       }
     );
 
-    const accessToken = response.data.access_token;
-    //console.log("Access Token:", accessToken);
+    const accessToken = tokenRes.data.access_token;
 
-    res.redirect(
-      `https://adrianbenitezdev.github.io/CREADOR-DE-PAC/gmailPag.html?tok=${accessToken}`
+    const profileRes = await axios.get(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
     );
 
-    //  let respuestaEnviar = await obtenerEmailsConAsuntoDesignacion(accessToken);
+    const profile = profileRes.data;
 
-    // res.json(respuestaEnviar);
-    // Devuelve el access token al frontend
-    //res.json({ access_token: accessToken });
-  } catch (error) {
-    console.error(error.response ? error.response.data : error);
-    res.status(500).send("Error al obtener el token");
+    // Página HTML con postMessage
+    res.send(`
+      <html>
+        <body>
+          <script>
+            window.opener.postMessage({
+              token: ${JSON.stringify(accessToken)},
+              profile: ${JSON.stringify(profile)}
+            }, "https://adrianbenitezdev.github.io");
+            window.close();
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error en la autenticación");
   }
 });
 
