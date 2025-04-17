@@ -156,7 +156,7 @@ app.post("/obtenerMails", async (req, res) => {
   const token = req.body.token;
   const maxFilaReq = req.body.maxFila;
 
-  const maxFila = 10;
+  let maxFila = 10;
   if (maxFilaReq == 10 || 20 || 30) {
     maxFila = maxFilaReq;
   } else {
@@ -352,7 +352,7 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
   let datosConsultaPreparado = encodeURIComponent(datosConsulta);
 
   const url =
-    "https://www.googleapis.com/gmail/v1/users/me/messages?q=subject:Designación%20APD%20" +
+    "https://www.googleapis.com/gmail/v1/users/me/messages?q=Designación%20APD%20" +
     datosConsultaPreparado;
 
   try {
