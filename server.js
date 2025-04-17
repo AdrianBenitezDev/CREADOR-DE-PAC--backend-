@@ -35,8 +35,8 @@ app.get("/oauth2callback", async (req, res) => {
       "client_id",
       "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
     );
-    console.warn("--->", MY_CLIENT_SECRET);
-    params.append("client_secret", MY_CLIENT_SECRET);
+
+    params.append("client_secret", process.env.MY_CLIENT_SECRET);
     params.append("redirect_uri", redirectUri);
     params.append("grant_type", "authorization_code");
 
