@@ -82,7 +82,7 @@ app.get("/oauth2callback", async (req, res) => {
   }
 });
 
-async function obtenerEmailsConAsuntoDesignacion(token) {
+async function obtenerEmailsConAsuntoDesignacion(token, maxFila) {
   //console.log(token);
   if (!token) {
     console.log("No se pudo obtener un token.");
@@ -108,7 +108,7 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
       const messageDetails = [];
 
       for (const message of data.messages) {
-        if (messageDetails.length >= maxMensajes) break;
+        if (messageDetails.length >= maxFila) break;
 
         try {
           const messageResponse = await axios.get(
@@ -154,8 +154,17 @@ async function obtenerEmailsConAsuntoDesignacion(token) {
 
 app.post("/obtenerMails", async (req, res) => {
   const token = req.body.token;
+  const maxFilaReq = req.body.maxFila;
+
+  const maxFila = 10;
+  if (maxFilaReq == 10 || 20 || 30) {
+    maxFila = maxFilaReq;
+  } else {
+    maxFila = 10;
+  }
+
   //console.log(token);
-  let resEnviar = await obtenerEmailsConAsuntoDesignacion(token);
+  let resEnviar = await obtenerEmailsConAsuntoDesignacion(token, maxFila);
   res.json(resEnviar);
 });
 
@@ -323,6 +332,105 @@ app.post("/ver", async (req, res) => {
   const htmlC = html1;
 
   res.send(htmlC);
+});
+
+//obtener mensajes con palabras personalizadas
+async function obtenerEmailsConAsuntoDesignacionPersonalizado(
+  token,
+  maxFila,
+  datosConsulta
+) {
+  //console.log(token);
+  if (!token) {
+    console.log("No se pudo obtener un token.");
+    return;
+  } else {
+    console.log("Obteniendo mensajes únicos con pausas de 200ms...");
+  }
+
+  //preparamos los datos para concatenarlos en la URL
+
+  let datosConsultaPreparado = datosConsulta.replaceAll(" ", "%20");
+
+  const url =
+    "https://www.googleapis.com/gmail/v1/users/me/messages?q=subject:Designación%20APD%20" +
+    datosConsultaPreparado;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = response.data;
+
+    if (data.messages && data.messages.length > 0) {
+      const threadIdsUnicos = new Set();
+      const messageDetails = [];
+
+      for (const message of data.messages) {
+        if (messageDetails.length >= maxFila) break;
+
+        try {
+          const messageResponse = await axios.get(
+            `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const detalle = messageResponse.data;
+
+          // Solo agregar si el threadId es nuevo
+          if (!threadIdsUnicos.has(detalle.threadId)) {
+            threadIdsUnicos.add(detalle.threadId);
+            messageDetails.push(detalle);
+          }
+
+          // Esperar 200ms para evitar sobrecarga
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(
+            `Error al obtener el mensaje con ID ${message.id}:`,
+            error.message
+          );
+        }
+      }
+
+      //console.log(messageDetails);
+      return messageDetails;
+    } else {
+      console.log("No se encontraron mensajes con ese asunto.");
+      return [];
+    }
+  } catch (error) {
+    console.error(
+      "Error al obtener los correos:",
+      error.response ? error.response.data : error.message
+    );
+  }
+}
+
+app.post("/obtenerMailsPersonalizado", async (req, res) => {
+  const token = req.body.token;
+  const maxFilaReq = req.body.maxFila;
+
+  const maxFila = 10;
+  if (maxFilaReq == 10 || 20 || 30) {
+    maxFila = maxFilaReq;
+  } else {
+    maxFila = 10;
+  }
+
+  //console.log(token);
+  let resEnviar = await obtenerEmailsConAsuntoDesignacionPersonalizado(
+    token,
+    maxFila
+  );
+  res.json(resEnviar);
 });
 
 // Iniciar el servidor
