@@ -419,6 +419,8 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
 app.post("/obtenerMailsPersonalizado", async (req, res) => {
   const token = req.body.token;
   const maxFilaReq = req.body.maxFila;
+  let datosConsultaSinRevisar = req.body.datosConsulta;
+  let datosConsulta = "";
 
   let maxFila = 10;
   if (maxFilaReq == 10 || 20 || 30) {
@@ -427,10 +429,20 @@ app.post("/obtenerMailsPersonalizado", async (req, res) => {
     maxFila = 10;
   }
 
+  if (/[^a-zA-Z0-9\s]/.test(datosConsultaSinRevisar)) {
+    // Contiene caracteres especiales
+    console.error("error:consultaPersonalizada tiene caracteres especiales");
+    return;
+  } else {
+    // Solo tiene letras, números o espacios
+    datosConsulta = datosConsultaSinRevisar;
+  }
+
   //console.log(token);
   let resEnviar = await obtenerEmailsConAsuntoDesignacionPersonalizado(
     token,
-    maxFila
+    maxFila,
+    datosConsulta
   );
   res.json(resEnviar);
 });
