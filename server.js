@@ -418,7 +418,7 @@ app.post("/obtenerMailsPersonalizado", async (req, res) => {
   const token = req.body.token;
   const maxFilaReq = req.body.maxFila;
 
-  const maxFila = 10;
+  let maxFila = 10;
   if (maxFilaReq == 10 || 20 || 30) {
     maxFila = maxFilaReq;
   } else {
