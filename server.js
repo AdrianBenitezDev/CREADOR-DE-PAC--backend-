@@ -1,5 +1,8 @@
 console.log("Iniciando servidor...");
 
+let accessToken = null;
+let refreshToken = null;
+
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
@@ -18,76 +21,6 @@ const path = require("path");
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
 
-async function obtenerEmailsConAsuntoDesignacion(token, maxFila) {
-  //console.log(token);
-  if (!token) {
-    console.log("No se pudo obtener un token.");
-    return;
-  } else {
-    console.log("Obteniendo mensajes únicos con pausas de 200ms...");
-  }
-
-  const url =
-    "https://www.googleapis.com/gmail/v1/users/me/messages?q=subject:Designación%20APD";
-
-  try {
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = response.data;
-
-    if (data.messages && data.messages.length > 0) {
-      const threadIdsUnicos = new Set();
-      const messageDetails = [];
-
-      for (const message of data.messages) {
-        if (messageDetails.length >= maxFila) break;
-
-        try {
-          const messageResponse = await axios.get(
-            `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          const detalle = messageResponse.data;
-
-          // Solo agregar si el threadId es nuevo
-          if (!threadIdsUnicos.has(detalle.threadId)) {
-            threadIdsUnicos.add(detalle.threadId);
-            messageDetails.push(detalle);
-          }
-
-          // Esperar 200ms para evitar sobrecarga
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        } catch (error) {
-          console.error(
-            `Error al obtener el mensaje con ID ${message.id}:`,
-            error.message
-          );
-        }
-      }
-
-      //console.log(messageDetails);
-      return messageDetails;
-    } else {
-      console.log("No se encontraron mensajes con ese asunto.");
-      return [];
-    }
-  } catch (error) {
-    console.error(
-      "Error al obtener los correos:",
-      error.response ? error.response.data : error.message
-    );
-  }
-}
-
 app.post("/obtenerMails", async (req, res) => {
   const token = req.body.token;
   const maxFilaReq = req.body.maxFila;
@@ -102,34 +35,6 @@ app.post("/obtenerMails", async (req, res) => {
   //console.log(token);
   let resEnviar = await obtenerEmailsConAsuntoDesignacion(token, maxFila);
   res.json(resEnviar);
-});
-
-// Ruta para leer los correos electrónicos
-app.post("/getEmails", async (req, res) => {
-  const { access_token } = req.body; // El Access Token debe ser enviado desde el frontend
-
-  if (!access_token) {
-    return res.status(400).send("Error: No se recibió el Access Token.");
-  }
-
-  try {
-    // Solicitar los correos utilizando el Access Token
-    const response = await axios.get(
-      "https://gmail.googleapis.com/gmail/v1/users/me/messages",
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      }
-    );
-
-    // Si la solicitud es exitosa, se devuelve la lista de mensajes
-    //console.log("Emails:", response.data);
-    res.json(response.data); // Devolver la lista de correos al frontend
-  } catch (error) {
-    console.error("Error al obtener los correos:", error);
-    res.status(500).send("Error al obtener los correos.");
-  }
 });
 
 //PARTE PARA REALIZAR UN ARCHIVO EXCEL Y ENVIARLO AL CLIENTE
@@ -186,7 +91,7 @@ app.post("/generarPac", async (req, res) => {
 
 //visualización previa antes de descargar
 const fs = require("fs");
-const { getHeapCodeStatistics } = require("v8");
+//const { getHeapCodeStatistics } = require("v8");
 app.post("/ver", async (req, res) => {
   const datosPac = req.body.objeto;
   const headerPac = JSON.parse(req.body.headerPac);
@@ -271,6 +176,75 @@ app.post("/ver", async (req, res) => {
   res.send(htmlC);
 });
 
+async function obtenerEmailsConAsuntoDesignacion(token, maxFila) {
+  //console.log(token);
+  if (!token) {
+    console.log("No se pudo obtener un token.");
+    return;
+  } else {
+    console.log("Obteniendo mensajes únicos con pausas de 200ms...");
+  }
+
+  const url =
+    "https://www.googleapis.com/gmail/v1/users/me/messages?q=subject:Designación%20APD";
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = response.data;
+
+    if (data.messages && data.messages.length > 0) {
+      const threadIdsUnicos = new Set();
+      const messageDetails = [];
+
+      for (const message of data.messages) {
+        if (messageDetails.length >= maxFila) break;
+
+        try {
+          const messageResponse = await axios.get(
+            `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const detalle = messageResponse.data;
+
+          // Solo agregar si el threadId es nuevo
+          if (!threadIdsUnicos.has(detalle.threadId)) {
+            threadIdsUnicos.add(detalle.threadId);
+            messageDetails.push(detalle);
+          }
+
+          // Esperar 200ms para evitar sobrecarga
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(
+            `Error al obtener el mensaje con ID ${message.id}:`,
+            error.message
+          );
+        }
+      }
+
+      //console.log(messageDetails);
+      return messageDetails;
+    } else {
+      console.log("No se encontraron mensajes con ese asunto.");
+      return [];
+    }
+  } catch (error) {
+    console.error(
+      "Error al obtener los correos:",
+      error.response ? error.response.data : error.message
+    );
+  }
+}
 //obtener mensajes con palabras personalizadas
 async function obtenerEmailsConAsuntoDesignacionPersonalizado(
   token,
@@ -389,6 +363,8 @@ connectDB().then(() => {
   const db = getDB();
   const usuarios = db.collection("usuarios");
 
+  //se autentica una sola vez!!
+
   app.get("/oauth2callback", async (req, res) => {
     const code = req.query.code;
     if (!code) return res.status(400).send("Falta el código");
@@ -416,9 +392,9 @@ connectDB().then(() => {
         }
       );
 
-      //obtenemos el refresh token y el token
-      const accessToken = tokenRes.data.access_token;
-      const refreshToken = tokenRes.data.refresh_token;
+      //obtenemos el refresh token y el token, las declaramos para ser utilizadas en la app
+      accessToken = tokenRes.data.access_token;
+      refreshToken = tokenRes.data.refresh_token;
 
       //guardamos el usuario con el refresh token
 
@@ -433,10 +409,12 @@ connectDB().then(() => {
 
       agregarUsuarioDb(
         usuarios,
+        profile.email,
         profile.sub,
         profile.name,
         profile.picture,
-        refreshToken
+        refreshToken,
+        accessToken
       );
 
       // Página HTML con postMessage
@@ -464,14 +442,24 @@ connectDB().then(() => {
     res.json(usuariosLista);
   });
 
-  app.post("/traerDatosUsuario", async (req, res) => {
+  app.post("/obtenerVariablesGlobales", async (req, res) => {
     const user_id = req.body.user_google_id;
     //realizamos la consulta para traer los datos de mongoDb
     let resp = await leerUsuarios(usuarios, user_id);
+
+    //actualizamos las variable globales de los tokens
+    accessToken = resp.access_Token;
+    refreshToken = resp.refresh_Token;
+
     if (resp) {
-      res.json(resp);
+      res.json({
+        google_id: resp.google_id, // <- este es el `sub`, tu identificador clave
+        nombre: resp.nombre,
+        foto: resp.foto,
+        email: resp.email,
+      });
     } else {
-      res.json({ mensaje: "no hubo coincidencias" });
+      res.json({ mensaje: "no hay usuario guardado para el id:" + user_id });
     }
   });
 });
@@ -481,12 +469,22 @@ app.listen(PORT, () => {
   console.log("--versión con excel donDB!");
 });
 
-async function agregarUsuarioDb(usuarios, sub, names, foto, refToken) {
+async function agregarUsuarioDb(
+  usuarios,
+  email,
+  sub,
+  names,
+  foto,
+  refresh_Token,
+  access_Token
+) {
   const nuevo = {
     google_id: sub, // <- este es el `sub`, tu identificador clave
+    email: email,
     nombre: names,
     foto: foto,
-    refresh_token: refToken,
+    accessToken: access_Token,
+    refresh_token: refresh_Token,
   };
   const resultado = await usuarios.insertOne(nuevo);
   console.log(resultado);
@@ -498,4 +496,21 @@ async function leerUsuarios(usuarios, sub) {
   const usuarioEncontrado = usuariosLista.find((ele) => ele.google_id === sub);
 
   return usuarioEncontrado || false;
+}
+
+async function refrescarAccessToken() {
+  const response = await axios.post("https://api.externaservice.com/token", {
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+    client_id: "tu_client_id",
+    client_secret: "tu_secret",
+  });
+
+  return response.data.access_token;
+}
+
+async function actualizarTokenEnBD(nuevoToken) {
+  await db
+    .collection("usuarios")
+    .updateOne({ sub: "loquesea" }, { $set: { access_token: nuevoToken } });
 }

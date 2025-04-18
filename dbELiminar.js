@@ -1,29 +1,50 @@
-const express = require("express");
-const app = express();
-const PORT = 3000;
+let accessToken = null;
+let refreshToken = null;
 
-const { connectDB, getDB } = require("./db");
+async function inicializarUsuariosTokens() {
+  const usuario = await db.collection("usuarios").findOne({ sub: "loquesea" });
+  accessToken = usuario.access_token;
+  refreshToken = usuario.refresh_token;
+}
 
-connectDB()
-  .then(() => {
-    const db = getDB();
-    const usuarios = db.collection("usuarios");
+async function hacerConsultaAApiExterna() {
+  try {
+    const response = await axios.get(
+      "https://api.externaservice.com/endpoint",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      // Token expiró, pedimos uno nuevo
+      const nuevoToken = await refrescarAccessToken();
+      accessToken = nuevoToken;
+      await actualizarTokenEnBD(nuevoToken);
+      // Reintentamos la consulta
+      return hacerConsultaAApiExterna();
+    } else {
+      throw error;
+    }
+  }
+}
 
-    // Todas tus rutas que usan la DB van acá
-    app.get("/verUsuarios", async (req, res) => {
-      const lista = await usuarios.find().toArray();
-      res.json(lista);
-    });
-
-    app.get("/agregar", async (req, res) => {
-      res.json({ mensaje: "Usuario agregado", id: resultado.insertedId });
-    });
-
-    // Solo después de conectar, se puede arrancar el servidor
-    app.listen(PORT, () => {
-      console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Error conectando a MongoDB:", err);
+async function refrescarAccessToken() {
+  const response = await axios.post("https://api.externaservice.com/token", {
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+    client_id: "tu_client_id",
+    client_secret: "tu_secret",
   });
+
+  return response.data.access_token;
+}
+
+async function actualizarTokenEnBD(nuevoToken) {
+  await db
+    .collection("usuarios")
+    .updateOne({ sub: "loquesea" }, { $set: { access_token: nuevoToken } });
+}
