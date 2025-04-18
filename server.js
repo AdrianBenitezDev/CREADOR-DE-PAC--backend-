@@ -185,7 +185,7 @@ async function obtenerEmailsConAsuntoDesignacion(maxFila) {
   try {
     const response = await axios.get(url, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
