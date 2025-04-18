@@ -431,9 +431,13 @@ connectDB().then(() => {
       );
       const profile = profileRes.data;
 
-
-      agregarUsuarioDb(usuarios,profile.sub,profile.name,profile.picture,refreshToken)
-
+      agregarUsuarioDb(
+        usuarios,
+        profile.sub,
+        profile.name,
+        profile.picture,
+        refreshToken
+      );
 
       // Página HTML con postMessage
       res.send(`
@@ -458,6 +462,12 @@ connectDB().then(() => {
   app.post("/traerDatosUsuario", async (req, res) => {
     const user_id = req.body.user_google_id;
     //realizamos la consulta para traer los datos de mongoDb
+    let resp = leerUsuarios(usuarios, user_id);
+    if (resp) {
+      res.json(resp);
+    } else {
+      res.json({ mensaje: "no hubo coincidencias" });
+    }
   });
 });
 
@@ -466,14 +476,25 @@ app.listen(PORT, () => {
   console.log("--versión con excel donDB!");
 });
 
-
-function agregarUsuarioDb(usuarios,sub,name,foto,refToken){
+async function agregarUsuarioDb(usuarios, sub, names, foto, refToken) {
   const nuevo = {
     google_id: sub, // <- este es el `sub`, tu identificador clave
-    nombre: name,
+    nombre: names,
     foto: foto,
     refresh_token: refToken,
   };
   const resultado = await usuarios.insertOne(nuevo);
-  console.log(resultado)
+  console.log(resultado);
+}
+
+async function leerUsuarios(usuarios, sub) {
+  const lista = await usuarios.find().toArray();
+
+  let usuarioEncontrado = lista.find((ele) => ele.sub == sub);
+
+  if (usuarioEncontrado) {
+    return usuarioEncontrado;
+  } else {
+    return false;
+  }
 }
