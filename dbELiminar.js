@@ -16,15 +16,6 @@ connectDB()
     });
 
     app.get("/agregar", async (req, res) => {
-      const nuevo = {
-        google_id: "102181239028527552007", // <- este es el `sub`, tu identificador clave
-        nombre: "Ees N 26 Almirante Brown",
-        nombre_corto: "Ees N  26",
-        apellido: "Almirante Brown",
-        foto: "https://lh3.googleusercontent.com/a/....",
-        refresh_token: "12234356789",
-      };
-      const resultado = await usuarios.insertOne(nuevo);
       res.json({ mensaje: "Usuario agregado", id: resultado.insertedId });
     });
 

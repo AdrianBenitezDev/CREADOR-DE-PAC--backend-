@@ -18,10 +18,6 @@ const path = require("path");
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
 
-app.get("/gmailPag.html", async (req, res) => {
-  console.warn("redireccionando a gmailPag");
-});
-
 async function obtenerEmailsConAsuntoDesignacion(token, maxFila) {
   //console.log(token);
   if (!token) {
@@ -420,7 +416,11 @@ connectDB().then(() => {
         }
       );
 
+      //obtenemos el refresh token y el token
       const accessToken = tokenRes.data.access_token;
+      const refreshToken = tokenRes.data.refresh_token;
+
+      //guardamos el usuario con el refresh token
 
       //obtenemos la info del usuario de googles
       const profileRes = await axios.get(
@@ -429,8 +429,11 @@ connectDB().then(() => {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
-
       const profile = profileRes.data;
+
+
+      agregarUsuarioDb(usuarios,profile.sub,profile.name,profile.picture,refreshToken)
+
 
       // Página HTML con postMessage
       res.send(`
@@ -462,3 +465,15 @@ app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
   console.log("--versión con excel donDB!");
 });
+
+
+function agregarUsuarioDb(usuarios,sub,name,foto,refToken){
+  const nuevo = {
+    google_id: sub, // <- este es el `sub`, tu identificador clave
+    nombre: name,
+    foto: foto,
+    refresh_token: refToken,
+  };
+  const resultado = await usuarios.insertOne(nuevo);
+  console.log(resultado)
+}
