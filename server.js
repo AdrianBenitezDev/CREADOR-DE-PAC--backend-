@@ -452,7 +452,7 @@ connectDB().then(() => {
   const usuarios = db.collection("usuarios");
 
   // Ruta para obtener usuarios
-  app.get("/usuarios", async (req, res) => {
+  app.get("/Usuarios", async (req, res) => {
     const lista = await usuarios.find().toArray();
     res.json(lista);
   });
