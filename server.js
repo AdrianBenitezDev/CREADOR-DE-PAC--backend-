@@ -457,6 +457,16 @@ connectDB().then(() => {
     res.json(lista);
   });
 
+  app.get("/agregar", async (req, res) => {
+    const nuevo = {
+      usuario: "prueba",
+      codigo: "asdwqwe",
+      refresh_token: "12234356789",
+    };
+    const resultado = await usuarios.insertOne(nuevo);
+    res.json({ mensaje: "Usuario agregado", id: resultado.insertedId });
+  });
+
   // Ruta para agregar un usuario
   app.post("/usuarios", async (req, res) => {
     const nuevo = req.body;
