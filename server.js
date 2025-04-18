@@ -494,8 +494,6 @@ async function leerUsuarios(usuarios, sub) {
   return usuarioEncontrado || false;
 }
 
-const axios = require("axios");
-
 async function refrescarAccessToken(callback) {
   const params = new URLSearchParams();
   params.append(
