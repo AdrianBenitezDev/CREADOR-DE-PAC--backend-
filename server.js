@@ -488,13 +488,8 @@ async function agregarUsuarioDb(usuarios, sub, names, foto, refToken) {
 }
 
 async function leerUsuarios(usuarios, sub) {
-  const lista = await usuarios.find().toArray();
+  const usuariosLista = await usuarios.find().toArray();
+  const usuarioEncontrado = usuariosLista.find((ele) => ele.sub === sub);
 
-  let usuarioEncontrado = lista.find((ele) => ele.sub == sub);
-
-  if (usuarioEncontrado) {
-    return usuarioEncontrado;
-  } else {
-    return false;
-  }
+  return usuarioEncontrado || false;
 }
