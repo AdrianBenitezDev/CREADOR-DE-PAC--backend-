@@ -2,6 +2,7 @@ console.log("Iniciando servidor...");
 
 let accessToken = null;
 let refreshToken = null;
+let sub = null;
 
 const express = require("express");
 const axios = require("axios");
@@ -91,6 +92,7 @@ app.post("/generarPac", async (req, res) => {
 
 //visualización previa antes de descargar
 const fs = require("fs");
+const { callbackify } = require("util");
 //const { getHeapCodeStatistics } = require("v8");
 app.post("/ver", async (req, res) => {
   const datosPac = req.body.objeto;
@@ -235,6 +237,7 @@ async function obtenerEmailsConAsuntoDesignacion(maxFila) {
       "Error al obtener los correos:",
       error.response ? error.response.data : error.message
     );
+    refrescarAccessToken(obtenerEmailsConAsuntoDesignacion(maxFila));
   }
 }
 //obtener mensajes con palabras personalizadas
@@ -306,6 +309,9 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
     console.error(
       "Error al obtener los correos:",
       error.response ? error.response.data : error.message
+    );
+    refrescarAccessToken(
+      obtenerEmailsConAsuntoDesignacionPersonalizado(maxFila, datosConsulta)
     );
   }
 }
@@ -430,6 +436,7 @@ connectDB().then(() => {
     //actualizamos las variable globales de los tokens
     accessToken = resp.access_Token;
     refreshToken = resp.refresh_Token;
+    sub = user_id;
 
     if (resp) {
       res.json({
@@ -486,15 +493,33 @@ async function leerUsuarios(usuarios, sub) {
   return usuarioEncontrado || false;
 }
 
-async function refrescarAccessToken() {
-  const response = await axios.post("https://api.externaservice.com/token", {
-    grant_type: "refresh_token",
-    refresh_token: refreshToken,
-    client_id: "tu_client_id",
-    client_secret: "tu_secret",
-  });
+async function refrescarAccessToken(callback) {
+  const params = new URLSearchParams();
+  params.append("code", code);
+  params.append(
+    "client_id",
+    "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
+  );
 
-  return response.data.access_token;
+  params.append("client_secret", process.env.MY_CLIENT_SECRET);
+  params.append("redirect_uri", redirectUri);
+  params.append("grant_type", "authorization_code");
+
+  const tokenRes = await axios.post(
+    "https://oauth2.googleapis.com/token",
+    params,
+    {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    }
+  );
+
+  //obtenemos el refresh token y el token, las declaramos para ser utilizadas en la app
+  accessToken = tokenRes.data.access_token;
+  refreshToken = tokenRes.data.refresh_token;
+
+  actualizarTokenEnBD(accessToken);
+
+  callback;
 }
 
 async function actualizarTokenEnBD(nuevoToken, sub) {
