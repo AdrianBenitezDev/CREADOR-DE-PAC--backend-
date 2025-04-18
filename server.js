@@ -459,7 +459,7 @@ connectDB().then(() => {
     }
   });
 
-  app.post("/all", async (req, res) => {
+  app.get("/all", async (req, res) => {
     const usuariosLista = await usuarios.find().toArray();
     res.json(usuariosLista);
   });
