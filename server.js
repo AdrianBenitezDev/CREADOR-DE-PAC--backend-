@@ -462,7 +462,7 @@ connectDB().then(() => {
   app.post("/traerDatosUsuario", async (req, res) => {
     const user_id = req.body.user_google_id;
     //realizamos la consulta para traer los datos de mongoDb
-    let resp = leerUsuarios(usuarios, user_id);
+    let resp = await leerUsuarios(usuarios, user_id);
     if (resp) {
       res.json(resp);
     } else {
