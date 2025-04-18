@@ -396,8 +396,6 @@ connectDB().then(() => {
       accessToken = tokenRes.data.access_token;
       refreshToken = tokenRes.data.refresh_token;
 
-      //guardamos el usuario con el refresh token
-
       //obtenemos la info del usuario de googles
       const profileRes = await axios.get(
         "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -407,7 +405,9 @@ connectDB().then(() => {
       );
       const profile = profileRes.data;
 
-      agregarUsuarioDb(
+      //guardamos el usuario con el refresh token VERIFICANDO QUE NO EXISTA EL USUARIO PREVIAMENTE
+
+      agregarAndActualizarUsuariosDb(
         usuarios,
         profile.email,
         profile.sub,
@@ -423,7 +423,6 @@ connectDB().then(() => {
           <body>
             <script>
               window.opener.postMessage({
-                token: ${JSON.stringify(accessToken)},
                 profile: ${JSON.stringify(profile)}
               }, "https://adrianbenitezdev.github.io");
               window.close();
@@ -469,7 +468,7 @@ app.listen(PORT, () => {
   console.log("--versión con excel donDB!");
 });
 
-async function agregarUsuarioDb(
+async function agregarAndActualizarUsuariosDb(
   usuarios,
   email,
   sub,
@@ -478,15 +477,23 @@ async function agregarUsuarioDb(
   refresh_Token,
   access_Token
 ) {
+  const filtro = { google_id: sub };
+
   const nuevo = {
-    google_id: sub, // <- este es el `sub`, tu identificador clave
+    google_id: sub,
     email: email,
     nombre: names,
     foto: foto,
     accessToken: access_Token,
     refresh_token: refresh_Token,
   };
-  const resultado = await usuarios.insertOne(nuevo);
+
+  const actualizacion = { $set: nuevo };
+
+  const resultado = await usuarios.updateOne(filtro, actualizacion, {
+    upsert: true,
+  });
+
   console.log(resultado);
 }
 
