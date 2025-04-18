@@ -380,7 +380,7 @@ connectDB().then(() => {
       );
 
       //obtenemos el refresh token y el token, las declaramos para ser utilizadas en la app
-      accessToken = tokenRes.data.access_token;
+      accessToken = tokenRes.data.accesstoken;
       refreshToken = tokenRes.data.refresh_token;
 
       //obtenemos la info del usuario de googles
@@ -435,7 +435,7 @@ connectDB().then(() => {
     let resp = await leerUsuarios(usuarios, user_id);
 
     //actualizamos las variable globales de los tokens
-    accessToken = resp.access_Token;
+    accessToken = resp.accessToken;
     refreshToken = resp.refresh_Token;
     sub = user_id;
 
