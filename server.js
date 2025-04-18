@@ -488,6 +488,7 @@ async function agregarUsuarioDb(usuarios, sub, names, foto, refToken) {
 }
 
 async function leerUsuarios(usuarios, sub) {
+  console.log("sub: " + sub);
   const usuariosLista = await usuarios.find().toArray();
   const usuarioEncontrado = usuariosLista.find((ele) => ele.sub === sub);
 
