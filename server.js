@@ -391,6 +391,7 @@ connectDB().then(() => {
         }
       );
       const profile = profileRes.data;
+      sub = profile.sub;
 
       //guardamos el usuario con el refresh token VERIFICANDO QUE NO EXISTA EL USUARIO PREVIAMENTE
 
@@ -493,36 +494,45 @@ async function leerUsuarios(usuarios, sub) {
   return usuarioEncontrado || false;
 }
 
+const axios = require("axios");
+
 async function refrescarAccessToken(callback) {
   const params = new URLSearchParams();
-  params.append("code", code);
   params.append(
     "client_id",
     "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
   );
-
   params.append("client_secret", process.env.MY_CLIENT_SECRET);
-  params.append("redirect_uri", redirectUri);
-  params.append("grant_type", "authorization_code");
+  params.append("refresh_token", refreshToken);
+  params.append("grant_type", "refresh_token");
 
-  const tokenRes = await axios.post(
-    "https://oauth2.googleapis.com/token",
-    params,
-    {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    }
-  );
+  try {
+    const tokenRes = await axios.post(
+      "https://oauth2.googleapis.com/token",
+      params,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
 
-  //obtenemos el refresh token y el token, las declaramos para ser utilizadas en la app
-  accessToken = tokenRes.data.access_token;
-  refreshToken = tokenRes.data.refresh_token;
+    const accessToken = tokenRes.data.access_token;
 
-  actualizarTokenEnBD(accessToken);
+    // Actualiza el access token en la base de datos
+    await actualizarTokenEnBD(accessToken);
 
-  callback;
+    if (callback) callback(null, accessToken);
+  } catch (error) {
+    console.error(
+      "Error al refrescar el token:",
+      error.response?.data || error
+    );
+    if (callback) callback(error);
+  }
 }
 
-async function actualizarTokenEnBD(nuevoToken, sub) {
+async function actualizarTokenEnBD(nuevoToken) {
   await db
     .collection("usuarios")
     .updateOne({ google_id: sub }, { $set: { access_token: nuevoToken } });
