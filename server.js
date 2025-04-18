@@ -22,7 +22,7 @@ app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
 
 app.post("/obtenerMails", async (req, res) => {
-  const token = req.body.token;
+  //const token = req.body.token;
   const maxFilaReq = req.body.maxFila;
 
   let maxFila = 10;
@@ -33,7 +33,7 @@ app.post("/obtenerMails", async (req, res) => {
   }
 
   //console.log(token);
-  let resEnviar = await obtenerEmailsConAsuntoDesignacion(token, maxFila);
+  let resEnviar = await obtenerEmailsConAsuntoDesignacion(maxFila);
   res.json(resEnviar);
 });
 
@@ -176,15 +176,7 @@ app.post("/ver", async (req, res) => {
   res.send(htmlC);
 });
 
-async function obtenerEmailsConAsuntoDesignacion(token, maxFila) {
-  //console.log(token);
-  if (!token) {
-    console.log("No se pudo obtener un token.");
-    return;
-  } else {
-    console.log("Obteniendo mensajes únicos con pausas de 200ms...");
-  }
-
+async function obtenerEmailsConAsuntoDesignacion(maxFila) {
   const url =
     "https://www.googleapis.com/gmail/v1/users/me/messages?q=subject:Designación%20APD";
 
@@ -209,7 +201,7 @@ async function obtenerEmailsConAsuntoDesignacion(token, maxFila) {
             `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${accessToken}`,
               },
             }
           );
@@ -247,18 +239,9 @@ async function obtenerEmailsConAsuntoDesignacion(token, maxFila) {
 }
 //obtener mensajes con palabras personalizadas
 async function obtenerEmailsConAsuntoDesignacionPersonalizado(
-  token,
   maxFila,
   datosConsulta
 ) {
-  //console.log(token);
-  if (!token) {
-    console.log("No se pudo obtener un token.");
-    return;
-  } else {
-    console.log("Obteniendo mensajes únicos con pausas de 200ms...");
-  }
-
   //preparamos los datos para concatenarlos en la URL
   let datosConsultaPreparado = encodeURIComponent(datosConsulta);
 
@@ -269,7 +252,7 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
   try {
     const response = await axios.get(url, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
@@ -287,7 +270,7 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
             `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${accessToken}`,
               },
             }
           );
@@ -328,7 +311,6 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
 }
 
 app.post("/obtenerMailsPersonalizado", async (req, res) => {
-  const token = req.body.token;
   const maxFilaReq = req.body.maxFila;
   let datosConsultaSinRevisar = req.body.datosConsulta;
   let datosConsulta = "";
@@ -351,7 +333,6 @@ app.post("/obtenerMailsPersonalizado", async (req, res) => {
 
   //console.log(token);
   let resEnviar = await obtenerEmailsConAsuntoDesignacionPersonalizado(
-    token,
     maxFila,
     datosConsulta
   );
@@ -516,8 +497,8 @@ async function refrescarAccessToken() {
   return response.data.access_token;
 }
 
-async function actualizarTokenEnBD(nuevoToken) {
+async function actualizarTokenEnBD(nuevoToken, sub) {
   await db
     .collection("usuarios")
-    .updateOne({ sub: "loquesea" }, { $set: { access_token: nuevoToken } });
+    .updateOne({ google_id: sub }, { $set: { access_token: nuevoToken } });
 }
