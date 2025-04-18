@@ -6,6 +6,7 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 10000;
 const maxMensajes = 10;
+const { connectDB, getDB } = require("./db");
 
 app.use(express.static("plantilla_pac/resources"));
 
@@ -444,9 +445,27 @@ app.post("/obtenerMailsPersonalizado", async (req, res) => {
   res.json(resEnviar);
 });
 
-// Iniciar el servidor
+// Iniciar data base
+
+connectDB().then(() => {
+  const db = getDB();
+  const usuarios = db.collection("usuarios");
+
+  // Ruta para obtener usuarios
+  app.get("/usuarios", async (req, res) => {
+    const lista = await usuarios.find().toArray();
+    res.json(lista);
+  });
+
+  // Ruta para agregar un usuario
+  app.post("/usuarios", async (req, res) => {
+    const nuevo = req.body;
+    const resultado = await usuarios.insertOne(nuevo);
+    res.json({ mensaje: "Usuario agregado", id: resultado.insertedId });
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
-  console.log("--versión con excel 1!");
+  console.log("--versión con excel donDB!");
 });
