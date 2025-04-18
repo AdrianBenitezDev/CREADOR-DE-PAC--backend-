@@ -22,64 +22,6 @@ app.get("/gmailPag.html", async (req, res) => {
   console.warn("redireccionando a gmailPag");
 });
 
-app.get("/oauth2callback", async (req, res) => {
-  const code = req.query.code;
-  if (!code) return res.status(400).send("Falta el código");
-
-  const redirectUri =
-    "https://creador-de-pac-backend.onrender.com/oauth2callback";
-
-  try {
-    const params = new URLSearchParams();
-    params.append("code", code);
-    params.append(
-      "client_id",
-      "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
-    );
-
-    params.append("client_secret", process.env.MY_CLIENT_SECRET);
-    params.append("redirect_uri", redirectUri);
-    params.append("grant_type", "authorization_code");
-
-    const tokenRes = await axios.post(
-      "https://oauth2.googleapis.com/token",
-      params,
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }
-    );
-
-    const accessToken = tokenRes.data.access_token;
-
-    const profileRes = await axios.get(
-      "https://www.googleapis.com/oauth2/v3/userinfo",
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
-
-    const profile = profileRes.data;
-
-    // Página HTML con postMessage
-    res.send(`
-      <html>
-        <body>
-          <script>
-            window.opener.postMessage({
-              token: ${JSON.stringify(accessToken)},
-              profile: ${JSON.stringify(profile)}
-            }, "https://adrianbenitezdev.github.io");
-            window.close();
-          </script>
-        </body>
-      </html>
-    `);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error en la autenticación" + err);
-  }
-});
-
 async function obtenerEmailsConAsuntoDesignacion(token, maxFila) {
   //console.log(token);
   if (!token) {
@@ -248,6 +190,7 @@ app.post("/generarPac", async (req, res) => {
 
 //visualización previa antes de descargar
 const fs = require("fs");
+const { getHeapCodeStatistics } = require("v8");
 app.post("/ver", async (req, res) => {
   const datosPac = req.body.objeto;
   const headerPac = JSON.parse(req.body.headerPac);
@@ -445,33 +388,73 @@ app.post("/obtenerMailsPersonalizado", async (req, res) => {
   res.json(resEnviar);
 });
 
-// Iniciar data base
-
+// CON BASE DE DATOS COLOCAMOS ADENTRO LAS CONSULTAS QUE UTILIZAN LA BASE DE DATOS
 connectDB().then(() => {
   const db = getDB();
   const usuarios = db.collection("usuarios");
 
-  // Ruta para obtener usuarios
-  app.get("/Usuarios", async (req, res) => {
-    const lista = await usuarios.find().toArray();
-    res.json(lista);
+  app.get("/oauth2callback", async (req, res) => {
+    const code = req.query.code;
+    if (!code) return res.status(400).send("Falta el código");
+
+    const redirectUri =
+      "https://creador-de-pac-backend.onrender.com/oauth2callback";
+
+    try {
+      const params = new URLSearchParams();
+      params.append("code", code);
+      params.append(
+        "client_id",
+        "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
+      );
+
+      params.append("client_secret", process.env.MY_CLIENT_SECRET);
+      params.append("redirect_uri", redirectUri);
+      params.append("grant_type", "authorization_code");
+
+      const tokenRes = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        params,
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        }
+      );
+
+      const accessToken = tokenRes.data.access_token;
+
+      //obtenemos la info del usuario de googles
+      const profileRes = await axios.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+      const profile = profileRes.data;
+
+      // Página HTML con postMessage
+      res.send(`
+        <html>
+          <body>
+            <script>
+              window.opener.postMessage({
+                token: ${JSON.stringify(accessToken)},
+                profile: ${JSON.stringify(profile)}
+              }, "https://adrianbenitezdev.github.io");
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Error en la autenticación" + err);
+    }
   });
 
-  app.get("/agregar", async (req, res) => {
-    const nuevo = {
-      usuario: "prueba",
-      codigo: "asdwqwe",
-      refresh_token: "12234356789",
-    };
-    const resultado = await usuarios.insertOne(nuevo);
-    res.json({ mensaje: "Usuario agregado", id: resultado.insertedId });
-  });
-
-  // Ruta para agregar un usuario
-  app.post("/usuarios", async (req, res) => {
-    const nuevo = req.body;
-    const resultado = await usuarios.insertOne(nuevo);
-    res.json({ mensaje: "Usuario agregado", id: resultado.insertedId });
+  app.post("/traerDatosUsuario", async (req, res) => {
+    const user_id = req.body.user_google_id;
+    //realizamos la consulta para traer los datos de mongoDb
   });
 });
 
