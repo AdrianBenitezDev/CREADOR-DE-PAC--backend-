@@ -535,3 +535,9 @@ async function actualizarTokenEnBD(nuevoToken) {
     .collection("usuarios")
     .updateOne({ google_id: sub }, { $set: { access_token: nuevoToken } });
 }
+
+app.get("/info.html", (req, res) => {
+  res.redirect(
+    "http://https://adrianbenitezdev.github.io/CREADOR-DE-PAC/info.html"
+  );
+});
