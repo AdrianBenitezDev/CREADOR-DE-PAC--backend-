@@ -226,7 +226,13 @@ connectDB().then(() => {
         "Error al obtener los correos:",
         error.response ? error.response.data : error.message
       );
-      refrescarAccessToken(() => obtenerEmailsConAsuntoDesignacion(maxFila));
+
+      let resultado = await refrescarAccessToken();
+      if (resultado) {
+        obtenerEmailsConAsuntoDesignacion(maxFila);
+      } else {
+        console.log("error al refrescar el access token");
+      }
     }
   }
   //obtener mensajes con palabras personalizadas
@@ -299,9 +305,12 @@ connectDB().then(() => {
         "Error al obtener los correos:",
         error.response ? error.response.data : error.message
       );
-      refrescarAccessToken(() =>
-        obtenerEmailsConAsuntoDesignacionPersonalizado(maxFila, datosConsulta)
-      );
+      let resultado = await refrescarAccessToken();
+      if (resultado) {
+        obtenerEmailsConAsuntoDesignacionPersonalizado(maxFila, datosConsulta);
+      } else {
+        console.log("error al refrescar el access token");
+      }
     }
   }
 
@@ -492,7 +501,7 @@ connectDB().then(() => {
     return usuarioEncontrado || false;
   }
 
-  async function refrescarAccessToken(callback) {
+  async function refrescarAccessToken() {
     const params = new URLSearchParams();
     params.append(
       "client_id",
@@ -519,7 +528,8 @@ connectDB().then(() => {
 
       if (accessToken) {
         await actualizarTokenEnBD(accessToken); // Usás el sub global
-        if (callback) callback();
+      } else {
+        console.log("no hay un nuevo accesToken");
       }
     } catch (error) {
       console.error(
