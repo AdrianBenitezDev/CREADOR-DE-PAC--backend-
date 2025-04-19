@@ -229,7 +229,7 @@ connectDB().then(() => {
 
       let resultado = await refrescarAccessToken();
       if (resultado) {
-        obtenerEmailsConAsuntoDesignacion(maxFila);
+        return await obtenerEmailsConAsuntoDesignacion(maxFila);
       } else {
         console.log("error al refrescar el access token");
       }
@@ -307,7 +307,10 @@ connectDB().then(() => {
       );
       let resultado = await refrescarAccessToken();
       if (resultado) {
-        obtenerEmailsConAsuntoDesignacionPersonalizado(maxFila, datosConsulta);
+        return await obtenerEmailsConAsuntoDesignacionPersonalizado(
+          maxFila,
+          datosConsulta
+        );
       } else {
         console.log("error al refrescar el access token");
       }
