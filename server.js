@@ -478,7 +478,7 @@ connectDB().then(() => {
       email: email,
       nombre: names,
       foto: foto,
-      accessToken: access_Token,
+      access_token: access_Token,
       refresh_token: refresh_Token,
     };
 
