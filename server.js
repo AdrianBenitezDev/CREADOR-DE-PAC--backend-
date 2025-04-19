@@ -162,78 +162,6 @@ app.post("/ver", async (req, res) => {
   res.send(htmlC);
 });
 
-app.get("/oauth2callback", async (req, res) => {
-  const code = req.query.code;
-  if (!code) return res.status(400).send("Falta el código");
-
-  const redirectUri =
-    "https://creador-de-pac-backend.onrender.com/oauth2callback";
-
-  try {
-    const params = new URLSearchParams();
-    params.append("code", code);
-    params.append(
-      "client_id",
-      "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
-    );
-
-    params.append("client_secret", process.env.MY_CLIENT_SECRET);
-    params.append("redirect_uri", redirectUri);
-    params.append("grant_type", "authorization_code");
-
-    const tokenRes = await axios.post(
-      "https://oauth2.googleapis.com/token",
-      params,
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }
-    );
-
-    //obtenemos el refresh token y el token, las declaramos para ser utilizadas en la app
-    accessToken = tokenRes.data.access_token;
-    refreshToken = tokenRes.data.refresh_token;
-
-    //obtenemos la info del usuario de googles
-    const profileRes = await axios.get(
-      "https://www.googleapis.com/oauth2/v3/userinfo",
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
-    const profile = profileRes.data;
-    sub = profile.sub;
-
-    //guardamos el usuario con el refresh token VERIFICANDO QUE NO EXISTA EL USUARIO PREVIAMENTE
-
-    agregarAndActualizarUsuariosDb(
-      usuarios,
-      profile.email,
-      profile.sub,
-      profile.name,
-      profile.picture,
-      refreshToken,
-      accessToken
-    );
-
-    // Página HTML con postMessage
-    res.send(`
-      <html>
-        <body>
-          <script>
-            window.opener.postMessage({
-              profile: ${JSON.stringify(profile)}
-            }, "https://adrianbenitezdev.github.io");
-            window.close();
-          </script>
-        </body>
-      </html>
-    `);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error en la autenticación" + err);
-  }
-});
-
 // CON BASE DE DATOS COLOCAMOS ADENTRO LAS CONSULTAS QUE UTILIZAN LA BASE DE DATOS
 connectDB().then(() => {
   const db = getDB();
@@ -385,6 +313,78 @@ connectDB().then(() => {
       }
     }
   }
+
+  app.get("/oauth2callback", async (req, res) => {
+    const code = req.query.code;
+    if (!code) return res.status(400).send("Falta el código");
+
+    const redirectUri =
+      "https://creador-de-pac-backend.onrender.com/oauth2callback";
+
+    try {
+      const params = new URLSearchParams();
+      params.append("code", code);
+      params.append(
+        "client_id",
+        "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
+      );
+
+      params.append("client_secret", process.env.MY_CLIENT_SECRET);
+      params.append("redirect_uri", redirectUri);
+      params.append("grant_type", "authorization_code");
+
+      const tokenRes = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        params,
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        }
+      );
+
+      //obtenemos el refresh token y el token, las declaramos para ser utilizadas en la app
+      accessToken = tokenRes.data.access_token;
+      refreshToken = tokenRes.data.refresh_token;
+
+      //obtenemos la info del usuario de googles
+      const profileRes = await axios.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      const profile = profileRes.data;
+      sub = profile.sub;
+
+      //guardamos el usuario con el refresh token VERIFICANDO QUE NO EXISTA EL USUARIO PREVIAMENTE
+
+      agregarAndActualizarUsuariosDb(
+        usuarios,
+        profile.email,
+        profile.sub,
+        profile.name,
+        profile.picture,
+        refreshToken,
+        accessToken
+      );
+
+      // Página HTML con postMessage
+      res.send(`
+      <html>
+        <body>
+          <script>
+            window.opener.postMessage({
+              profile: ${JSON.stringify(profile)}
+            }, "https://adrianbenitezdev.github.io");
+            window.close();
+          </script>
+        </body>
+      </html>
+    `);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Error en la autenticación" + err);
+    }
+  });
 
   app.post("/obtenerMailsPersonalizado", async (req, res) => {
     const maxFilaReq = req.body.maxFila;
