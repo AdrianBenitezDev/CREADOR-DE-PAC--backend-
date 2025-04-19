@@ -444,7 +444,7 @@ connectDB().then(() => {
     let resp = await leerUsuarios(usuarios, user_id);
 
     //actualizamos las variable globales de los tokens
-    accessToken = resp.accessToken;
+    accessToken = resp.access_token;
     refreshToken = resp.refresh_token;
     console.log("obtener variables globales");
     console.log(resp);
@@ -498,7 +498,7 @@ connectDB().then(() => {
       (ele) => ele.google_id === sub
     );
 
-    return usuarioEncontrado || false;
+    return JSON.parse(usuarioEncontrado) || false;
   }
 
   async function refrescarAccessToken() {
