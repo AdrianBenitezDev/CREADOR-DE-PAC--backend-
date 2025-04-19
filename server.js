@@ -527,6 +527,8 @@ connectDB().then(() => {
 
       accessToken = tokenRes.data.access_token;
 
+      console.log("Token refresh response:", tokenRes.data);
+
       if (accessToken) {
         await actualizarTokenEnBD(accessToken); // Usás el sub global
       } else {
