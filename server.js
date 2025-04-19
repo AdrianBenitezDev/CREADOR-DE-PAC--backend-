@@ -190,7 +190,7 @@ app.get("/oauth2callback", async (req, res) => {
     );
 
     //obtenemos el refresh token y el token, las declaramos para ser utilizadas en la app
-    accessToken = tokenRes.data.accesstoken;
+    accessToken = tokenRes.data.access_token;
     refreshToken = tokenRes.data.refresh_token;
 
     //obtenemos la info del usuario de googles
