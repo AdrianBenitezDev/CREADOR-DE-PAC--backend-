@@ -22,22 +22,6 @@ const path = require("path");
 app.use(cors());
 app.use(express.json()); // Middleware para parsear JSON
 
-app.post("/obtenerMails", async (req, res) => {
-  //const token = req.body.token;
-  const maxFilaReq = req.body.maxFila;
-
-  let maxFila = 10;
-  if (maxFilaReq == 10 || 20 || 30) {
-    maxFila = maxFilaReq;
-  } else {
-    maxFila = 10;
-  }
-
-  //console.log(token);
-  let resEnviar = await obtenerEmailsConAsuntoDesignacion(maxFila);
-  res.json(resEnviar);
-});
-
 //PARTE PARA REALIZAR UN ARCHIVO EXCEL Y ENVIARLO AL CLIENTE
 
 // Ruta para modificar el archivo y servirlo
@@ -237,7 +221,7 @@ async function obtenerEmailsConAsuntoDesignacion(maxFila) {
       "Error al obtener los correos:",
       error.response ? error.response.data : error.message
     );
-    refrescarAccessToken(obtenerEmailsConAsuntoDesignacion(maxFila));
+    refrescarAccessToken(() => obtenerEmailsConAsuntoDesignacion(maxFila));
   }
 }
 //obtener mensajes con palabras personalizadas
@@ -310,45 +294,61 @@ async function obtenerEmailsConAsuntoDesignacionPersonalizado(
       "Error al obtener los correos:",
       error.response ? error.response.data : error.message
     );
-    refrescarAccessToken(
+    refrescarAccessToken(() =>
       obtenerEmailsConAsuntoDesignacionPersonalizado(maxFila, datosConsulta)
     );
   }
 }
 
-app.post("/obtenerMailsPersonalizado", async (req, res) => {
-  const maxFilaReq = req.body.maxFila;
-  let datosConsultaSinRevisar = req.body.datosConsulta;
-  let datosConsulta = "";
-
-  let maxFila = 10;
-  if (maxFilaReq == 10 || 20 || 30) {
-    maxFila = maxFilaReq;
-  } else {
-    maxFila = 10;
-  }
-
-  if (/[^a-zA-Z0-9\s]/.test(datosConsultaSinRevisar)) {
-    // Contiene caracteres especiales
-    console.error("error:consultaPersonalizada tiene caracteres especiales");
-    return;
-  } else {
-    // Solo tiene letras, números o espacios
-    datosConsulta = datosConsultaSinRevisar;
-  }
-
-  //console.log(token);
-  let resEnviar = await obtenerEmailsConAsuntoDesignacionPersonalizado(
-    maxFila,
-    datosConsulta
-  );
-  res.json(resEnviar);
-});
-
 // CON BASE DE DATOS COLOCAMOS ADENTRO LAS CONSULTAS QUE UTILIZAN LA BASE DE DATOS
 connectDB().then(() => {
   const db = getDB();
   const usuarios = db.collection("usuarios");
+
+  app.post("/obtenerMailsPersonalizado", async (req, res) => {
+    const maxFilaReq = req.body.maxFila;
+    let datosConsultaSinRevisar = req.body.datosConsulta;
+    let datosConsulta = "";
+
+    let maxFila = 10;
+    if (maxFilaReq == 10 || 20 || 30) {
+      maxFila = maxFilaReq;
+    } else {
+      maxFila = 10;
+    }
+
+    if (/[^a-zA-Z0-9\s]/.test(datosConsultaSinRevisar)) {
+      // Contiene caracteres especiales
+      console.error("error:consultaPersonalizada tiene caracteres especiales");
+      return;
+    } else {
+      // Solo tiene letras, números o espacios
+      datosConsulta = datosConsultaSinRevisar;
+    }
+
+    //console.log(token);
+    let resEnviar = await obtenerEmailsConAsuntoDesignacionPersonalizado(
+      maxFila,
+      datosConsulta
+    );
+    res.json(resEnviar);
+  });
+
+  app.post("/obtenerMails", async (req, res) => {
+    //const token = req.body.token;
+    const maxFilaReq = req.body.maxFila;
+
+    let maxFila = 10;
+    if (maxFilaReq == 10 || 20 || 30) {
+      maxFila = maxFilaReq;
+    } else {
+      maxFila = 10;
+    }
+
+    //console.log(token);
+    let resEnviar = await obtenerEmailsConAsuntoDesignacion(maxFila);
+    res.json(resEnviar);
+  });
 
   //se autentica una sola vez!!
 
@@ -495,6 +495,7 @@ async function leerUsuarios(usuarios, sub) {
 
   return usuarioEncontrado || false;
 }
+
 async function refrescarAccessToken(callback) {
   const params = new URLSearchParams();
   params.append(
