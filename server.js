@@ -446,8 +446,7 @@ connectDB().then(() => {
     //actualizamos las variable globales de los tokens
     accessToken = resp.access_token;
     refreshToken = resp.refresh_token;
-    console.log("obtener variables globales");
-    console.log(resp);
+
     sub = user_id;
 
     if (resp) {
@@ -456,6 +455,8 @@ connectDB().then(() => {
         nombre: resp.nombre,
         foto: resp.foto,
         email: resp.email,
+        access_token: accessToken,
+        refresh_token: refreshToken,
       });
     } else {
       res.json({ mensaje: "no hay usuario guardado para el id:" + user_id });
@@ -498,7 +499,7 @@ connectDB().then(() => {
       (ele) => ele.google_id === sub
     );
 
-    return JSON.parse(usuarioEncontrado) || false;
+    return usuarioEncontrado || false;
   }
 
   async function refrescarAccessToken() {
