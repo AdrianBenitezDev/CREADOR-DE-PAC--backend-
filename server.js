@@ -493,7 +493,6 @@ async function leerUsuarios(usuarios, sub) {
 
   return usuarioEncontrado || false;
 }
-
 async function refrescarAccessToken(callback) {
   const params = new URLSearchParams();
   params.append(
@@ -517,16 +516,16 @@ async function refrescarAccessToken(callback) {
 
     const accessToken = tokenRes.data.access_token;
 
-    // Actualiza el access token en la base de datos
-    await actualizarTokenEnBD(accessToken);
-
-    if (callback) callback(null, accessToken);
+    if (accessToken) {
+      await actualizarTokenEnBD(accessToken); // Usás el sub global
+      if (callback) callback();
+    }
   } catch (error) {
     console.error(
-      "Error al refrescar el token:",
+      "--> Error al REFRESCAR el token:",
       error.response?.data || error
     );
-    if (callback) callback(error);
+    if (callback) callback(null);
   }
 }
 
