@@ -503,6 +503,8 @@ async function refrescarAccessToken(callback) {
   params.append("refresh_token", refreshToken);
   params.append("grant_type", "refresh_token");
 
+  console.log("refreshToken: " + refreshToken);
+
   try {
     const tokenRes = await axios.post(
       "https://oauth2.googleapis.com/token",
@@ -525,7 +527,6 @@ async function refrescarAccessToken(callback) {
       "--> Error al REFRESCAR el token:",
       error.response?.data || error
     );
-    if (callback) callback(null);
   }
 }
 
