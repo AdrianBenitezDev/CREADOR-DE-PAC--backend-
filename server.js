@@ -531,6 +531,7 @@ connectDB().then(() => {
 
       if (accessToken) {
         await actualizarTokenEnBD(accessToken); // Usás el sub global
+        return true;
       } else {
         console.log("no hay un nuevo accesToken");
       }
