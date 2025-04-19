@@ -436,7 +436,7 @@ connectDB().then(() => {
 
     //actualizamos las variable globales de los tokens
     accessToken = resp.accessToken;
-    refreshToken = resp.refresh_Token;
+    refreshToken = resp.refresh_token;
     console.log("obtener variables globales");
     console.log(resp);
     sub = user_id;
