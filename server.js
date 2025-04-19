@@ -452,95 +452,91 @@ connectDB().then(() => {
       res.json({ mensaje: "no hay usuario guardado para el id:" + user_id });
     }
   });
+
+  async function agregarAndActualizarUsuariosDb(
+    usuarios,
+    email,
+    sub,
+    names,
+    foto,
+    refresh_Token,
+    access_Token
+  ) {
+    const filtro = { google_id: sub };
+
+    const nuevo = {
+      google_id: sub,
+      email: email,
+      nombre: names,
+      foto: foto,
+      accessToken: access_Token,
+      refresh_token: refresh_Token,
+    };
+
+    const actualizacion = { $set: nuevo };
+
+    const resultado = await usuarios.updateOne(filtro, actualizacion, {
+      upsert: true,
+    });
+
+    console.log(resultado);
+  }
+
+  async function leerUsuarios(usuarios, sub) {
+    console.log("sub: " + sub);
+    const usuariosLista = await usuarios.find().toArray();
+    const usuarioEncontrado = usuariosLista.find(
+      (ele) => ele.google_id === sub
+    );
+
+    return usuarioEncontrado || false;
+  }
+
+  async function refrescarAccessToken(callback) {
+    const params = new URLSearchParams();
+    params.append(
+      "client_id",
+      "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
+    );
+    params.append("client_secret", process.env.MY_CLIENT_SECRET);
+    params.append("refresh_token", refreshToken);
+    params.append("grant_type", "refresh_token");
+
+    console.log("refreshToken: " + refreshToken);
+
+    try {
+      const tokenRes = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        params,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+
+      const accessToken = tokenRes.data.access_token;
+
+      if (accessToken) {
+        await actualizarTokenEnBD(accessToken); // Usás el sub global
+        if (callback) callback();
+      }
+    } catch (error) {
+      console.error(
+        "--> Error al REFRESCAR el token:",
+        error.response?.data || error
+      );
+    }
+  }
+
+  async function actualizarTokenEnBD(nuevoToken) {
+    await db
+      .collection("usuarios")
+      .updateOne({ google_id: sub }, { $set: { access_token: nuevoToken } });
+  }
 });
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
   console.log("--versión con excel donDB!");
-});
-
-async function agregarAndActualizarUsuariosDb(
-  usuarios,
-  email,
-  sub,
-  names,
-  foto,
-  refresh_Token,
-  access_Token
-) {
-  const filtro = { google_id: sub };
-
-  const nuevo = {
-    google_id: sub,
-    email: email,
-    nombre: names,
-    foto: foto,
-    accessToken: access_Token,
-    refresh_token: refresh_Token,
-  };
-
-  const actualizacion = { $set: nuevo };
-
-  const resultado = await usuarios.updateOne(filtro, actualizacion, {
-    upsert: true,
-  });
-
-  console.log(resultado);
-}
-
-async function leerUsuarios(usuarios, sub) {
-  console.log("sub: " + sub);
-  const usuariosLista = await usuarios.find().toArray();
-  const usuarioEncontrado = usuariosLista.find((ele) => ele.google_id === sub);
-
-  return usuarioEncontrado || false;
-}
-
-async function refrescarAccessToken(callback) {
-  const params = new URLSearchParams();
-  params.append(
-    "client_id",
-    "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
-  );
-  params.append("client_secret", process.env.MY_CLIENT_SECRET);
-  params.append("refresh_token", refreshToken);
-  params.append("grant_type", "refresh_token");
-
-  console.log("refreshToken: " + refreshToken);
-
-  try {
-    const tokenRes = await axios.post(
-      "https://oauth2.googleapis.com/token",
-      params,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
-
-    const accessToken = tokenRes.data.access_token;
-
-    if (accessToken) {
-      await actualizarTokenEnBD(accessToken); // Usás el sub global
-      if (callback) callback();
-    }
-  } catch (error) {
-    console.error(
-      "--> Error al REFRESCAR el token:",
-      error.response?.data || error
-    );
-  }
-}
-
-async function actualizarTokenEnBD(nuevoToken) {
-  await db
-    .collection("usuarios")
-    .updateOne({ google_id: sub }, { $set: { access_token: nuevoToken } });
-}
-
-app.get("/info.html", (req, res) => {
-  res.redirect(
-    "http://https://adrianbenitezdev.github.io/CREADOR-DE-PAC/info.html"
-  );
 });
