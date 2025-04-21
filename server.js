@@ -447,7 +447,7 @@ connectDB().then(() => {
   });
 
   app.get("/allhistorial", async (req, res) => {
-    const data_historial = await historial.find().toArray();
+    const data_historial = await historialCollection.find().toArray();
     res.json(data_historial);
   });
 
