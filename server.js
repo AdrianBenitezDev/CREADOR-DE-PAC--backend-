@@ -12,6 +12,9 @@ const PORT = process.env.PORT || 10000;
 const maxMensajes = 10;
 const { connectDB, getDB } = require("./db");
 
+//visualización previa antes de descargar
+const fs = require("fs");
+
 app.use(express.static("plantilla_pac/resources"));
 
 //excel
@@ -24,76 +27,83 @@ app.use(express.json()); // Middleware para parsear JSON
 
 //PARTE PARA REALIZAR UN ARCHIVO EXCEL Y ENVIARLO AL CLIENTE
 
-// Ruta para modificar el archivo y servirlo
-app.post("/generarPac", async (req, res) => {
-  const datosPac = req.body.objeto;
-  const headerPac = JSON.parse(req.body.headerPac);
+// CON BASE DE DATOS COLOCAMOS ADENTRO LAS CONSULTAS QUE UTILIZAN LA BASE DE DATOS
+connectDB().then(() => {
+  const db = getDB();
+  const usuarios = db.collection("usuarios");
+  const historialCollection = db.collection("historial");
 
-  const rutaArchivo = path.join(__dirname, `plantilla_pac_${maxMensajes}.xlsx`);
+  // Ruta para modificar el archivo y servirlo
+  app.post("/generarPac", async (req, res) => {
+    const datosPac = req.body.objeto;
+    const headerPac = JSON.parse(req.body.headerPac);
 
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(rutaArchivo);
+    const rutaArchivo = path.join(
+      __dirname,
+      `plantilla_pac_${maxMensajes}.xlsx`
+    );
 
-  const worksheet = workbook.getWorksheet(1); // Primera hoja (también puedes usar nombre)
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(rutaArchivo);
 
-  //aleramos celdas puntuales
-  worksheet.getCell("A5").value = "Domicilio: " + headerPac.domicilio;
-  worksheet.getCell("A6").value = "Telefono: " + headerPac.telefono;
-  worksheet.getCell("A10").value = "Categoria: " + headerPac.categoria;
-  worksheet.getCell("A11").value = "Turno: " + headerPac.turno;
-  worksheet.getCell("A12").value =
-    "Desfavorabilidad: " + headerPac.desfavorabilidad;
-  worksheet.getCell("K6").value = headerPac.titlePac;
-  worksheet.getCell("AI5").value = headerPac.numDistrito;
-  worksheet.getCell("AM5").value = headerPac.tipoOrganizacion;
-  worksheet.getCell("AQ5").value = headerPac.escuela;
+    const worksheet = workbook.getWorksheet(1); // Primera hoja (también puedes usar nombre)
 
-  datosPac.forEach((fila, numeroFila) => {
-    worksheet.getCell(`A${19 + numeroFila}`).value = fila.cupof; //cupof a19
-    worksheet.getCell(`D${19 + numeroFila}`).value = fila.dni; //dni
-    worksheet.getCell(`G${19 + numeroFila}`).value = fila.name; //name
-    worksheet.getCell(`H${19 + numeroFila}`).value = fila.revista; //resvista
-    worksheet.getCell(`J${19 + numeroFila}`).value = fila.pid; //resvista
-    worksheet.getCell(`K${19 + numeroFila}`).value = fila.mod; //mod
-    worksheet.getCell(`M${19 + numeroFila}`).value = fila.year; //año
-    worksheet.getCell(`N${19 + numeroFila}`).value = fila.seccion; //seccion
-    worksheet.getCell(`O${19 + numeroFila}`).value = fila.turno; //turno
+    //aleramos celdas puntuales
+    worksheet.getCell("A5").value = "Domicilio: " + headerPac.domicilio;
+    worksheet.getCell("A6").value = "Telefono: " + headerPac.telefono;
+    worksheet.getCell("A10").value = "Categoria: " + headerPac.categoria;
+    worksheet.getCell("A11").value = "Turno: " + headerPac.turno;
+    worksheet.getCell("A12").value =
+      "Desfavorabilidad: " + headerPac.desfavorabilidad;
+    worksheet.getCell("K6").value = headerPac.titlePac;
+    worksheet.getCell("AI5").value = headerPac.numDistrito;
+    worksheet.getCell("AM5").value = headerPac.tipoOrganizacion;
+    worksheet.getCell("AQ5").value = headerPac.escuela;
+
+    datosPac.forEach((fila, numeroFila) => {
+      worksheet.getCell(`A${19 + numeroFila}`).value = fila.cupof; //cupof a19
+      worksheet.getCell(`D${19 + numeroFila}`).value = fila.dni; //dni
+      worksheet.getCell(`G${19 + numeroFila}`).value = fila.name; //name
+      worksheet.getCell(`H${19 + numeroFila}`).value = fila.revista; //resvista
+      worksheet.getCell(`J${19 + numeroFila}`).value = fila.pid; //resvista
+      worksheet.getCell(`K${19 + numeroFila}`).value = fila.mod; //mod
+      worksheet.getCell(`M${19 + numeroFila}`).value = fila.year; //año
+      worksheet.getCell(`N${19 + numeroFila}`).value = fila.seccion; //seccion
+      worksheet.getCell(`O${19 + numeroFila}`).value = fila.turno; //turno
+    });
+
+    // Preparar para enviar el archivo directamente como descarga
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=plantilla-formateada.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    await guardarHistorial("Descargar pac");
+    await workbook.xlsx.write(res);
+    res.end();
   });
 
-  // Preparar para enviar el archivo directamente como descarga
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=plantilla-formateada.xlsx"
-  );
-  res.setHeader(
-    "Content-Type",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  );
+  //const { getHeapCodeStatistics } = require("v8");
+  app.post("/ver", async (req, res) => {
+    const datosPac = req.body.objeto;
+    const headerPac = JSON.parse(req.body.headerPac);
 
-  await workbook.xlsx.write(res);
-  res.end();
-});
+    console.log("--ver");
 
-//visualización previa antes de descargar
-const fs = require("fs");
-const { callbackify } = require("util");
-//const { getHeapCodeStatistics } = require("v8");
-app.post("/ver", async (req, res) => {
-  const datosPac = req.body.objeto;
-  const headerPac = JSON.parse(req.body.headerPac);
+    const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
+    //const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
 
-  console.log("--ver");
+    let html1 = fs.readFileSync(htmlPath, "utf8");
+    //let html2 = fs.readFileSync(htmlPathReverso, "utf8");
 
-  const htmlPath = path.join(__dirname, "/plantilla_pac/ANVERSO.html");
-  //const htmlPathReverso = path.join(__dirname, "/plantilla_pac/REVERSO.html");
+    let agregarHTML = "";
 
-  let html1 = fs.readFileSync(htmlPath, "utf8");
-  //let html2 = fs.readFileSync(htmlPathReverso, "utf8");
-
-  let agregarHTML = "";
-
-  datosPac.forEach((fila) => {
-    agregarHTML += `<tr style="height: 53px">
+    datosPac.forEach((fila) => {
+      agregarHTML += `<tr style="height: 53px">
       <th id="412696113R18" style="height: 53px;" class="row-headers-background">
         <div class="row-header-wrapper" style="line-height: 53px"></div>
       </th>
@@ -140,33 +150,28 @@ app.post("/ver", async (req, res) => {
       <td class="s75"></td>
       <td class="s77" dir="ltr"></td>
     </tr>`;
+    });
+    html1 = html1.replace("{{domicilio}}", headerPac.domicilio);
+    html1 = html1.replace("{{telefono}}", headerPac.telefono);
+    html1 = html1.replace("{{email}}", headerPac.email);
+
+    html1 = html1.replace("{{categoria}}", headerPac.categoria);
+    html1 = html1.replace("{{turno}}", headerPac.turno);
+    html1 = html1.replace("{{desfavorabilidad}}", headerPac.desfavorabilidad);
+
+    html1 = html1.replace("{{PAC}}", headerPac.titlePac || ""); // solo si existe esa propiedad
+    html1 = html1.replace("{{distrito}}", headerPac.numDistrito); // según el nombre que usás
+    html1 = html1.replace("{{organizacion}}", headerPac.tipoOrganizacion);
+    html1 = html1.replace("{{escuela}}", headerPac.escuela);
+
+    html1 = html1.replace("<tr><td>inyectorAnverso</td></tr>", agregarHTML);
+    //html2 = html2.replace("{{inyectorReverso}}", htmlReverso || "");
+
+    const htmlC = html1;
+
+    await guardarHistorial("Ver pac");
+    res.send(htmlC);
   });
-  html1 = html1.replace("{{domicilio}}", headerPac.domicilio);
-  html1 = html1.replace("{{telefono}}", headerPac.telefono);
-  html1 = html1.replace("{{email}}", headerPac.email);
-
-  html1 = html1.replace("{{categoria}}", headerPac.categoria);
-  html1 = html1.replace("{{turno}}", headerPac.turno);
-  html1 = html1.replace("{{desfavorabilidad}}", headerPac.desfavorabilidad);
-
-  html1 = html1.replace("{{PAC}}", headerPac.titlePac || ""); // solo si existe esa propiedad
-  html1 = html1.replace("{{distrito}}", headerPac.numDistrito); // según el nombre que usás
-  html1 = html1.replace("{{organizacion}}", headerPac.tipoOrganizacion);
-  html1 = html1.replace("{{escuela}}", headerPac.escuela);
-
-  html1 = html1.replace("<tr><td>inyectorAnverso</td></tr>", agregarHTML);
-  //html2 = html2.replace("{{inyectorReverso}}", htmlReverso || "");
-
-  const htmlC = html1;
-
-  res.send(htmlC);
-});
-
-// CON BASE DE DATOS COLOCAMOS ADENTRO LAS CONSULTAS QUE UTILIZAN LA BASE DE DATOS
-connectDB().then(() => {
-  const db = getDB();
-  const usuarios = db.collection("usuarios");
-  const historialCollection = db.collection("historial");
 
   async function obtenerEmailsConAsuntoDesignacion(maxFila) {
     const url =
