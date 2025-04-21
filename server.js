@@ -339,7 +339,7 @@ connectDB().then(() => {
       params.append("code", code);
       params.append(
         "client_id",
-        "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
+        "613161285651-obf7jk330d8f3uprmgvsirr2ca61g9ia.apps.googleusercontent.com"
       );
 
       params.append("client_secret", process.env.MY_CLIENT_SECRET);
@@ -524,7 +524,7 @@ connectDB().then(() => {
     const params = new URLSearchParams();
     params.append(
       "client_id",
-      "45594330364-68qsjfc7lo95iq95fvam08hb55oktu4c.apps.googleusercontent.com"
+      "613161285651-obf7jk330d8f3uprmgvsirr2ca61g9ia.apps.googleusercontent.com"
     );
     params.append("client_secret", process.env.MY_CLIENT_SECRET);
     params.append("refresh_token", refreshToken);
