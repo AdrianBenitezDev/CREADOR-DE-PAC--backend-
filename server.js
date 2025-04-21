@@ -166,6 +166,7 @@ app.post("/ver", async (req, res) => {
 connectDB().then(() => {
   const db = getDB();
   const usuarios = db.collection("usuarios");
+  const historialCollection = db.collection("historial");
 
   async function obtenerEmailsConAsuntoDesignacion(maxFila) {
     const url =
@@ -216,6 +217,7 @@ connectDB().then(() => {
         }
 
         //console.log(messageDetails);
+        await guardarHistorial("consulta de datos, fila utilizada: " + maxFila);
         return messageDetails;
       } else {
         console.log("No se encontraron mensajes con ese asunto.");
@@ -292,6 +294,9 @@ connectDB().then(() => {
         }
 
         //console.log(messageDetails);
+        await guardarHistorial(
+          "consulta  --Personalizada--, fila utilizada: " + maxFila
+        );
         return messageDetails;
       } else {
         console.log(
@@ -441,6 +446,11 @@ connectDB().then(() => {
     res.json(usuariosLista);
   });
 
+  app.get("/allhistorial", async (req, res) => {
+    const data_historial = await historial.find().toArray();
+    res.json(data_historial);
+  });
+
   app.post("/obtenerVariablesGlobales", async (req, res) => {
     const user_id = req.body.user_google_id;
     //realizamos la consulta para traer los datos de mongoDb
@@ -550,6 +560,23 @@ connectDB().then(() => {
     await db
       .collection("usuarios")
       .updateOne({ google_id: sub }, { $set: { access_token: nuevoToken } });
+  }
+
+  // Suponiendo que ya tenés la conexión a la base de datos como `db`
+  async function guardarHistorial(tipo) {
+    const nuevoHistorial = {
+      date: new Date().toISOString(), // Fecha y hora actual en formato ISO
+      tipo: tipo,
+    };
+
+    await historialCollection.updateOne(
+      { google_id: sub }, // Filtro por google_id
+      {
+        $push: { user_historial: nuevoHistorial }, // Agrega al array
+        $setOnInsert: { google_id: sub }, // Si no existe, crea el documento con google_id
+      },
+      { upsert: true } // Hace que lo cree si no existe
+    );
   }
 });
 
